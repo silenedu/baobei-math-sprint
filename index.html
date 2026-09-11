@@ -98,6 +98,12 @@
     width:100%;padding:12px 12px;border:1px solid var(--line);border-radius:12px;
     font-size:16px;background:#fff;color:var(--ink)
   }
+  textarea{
+    width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;
+    font-size:15px;background:#fff;color:var(--ink);resize:vertical;
+    min-height:80px;line-height:1.5;font-family:inherit
+  }
+  textarea:focus,input[type=date]:focus,input[type=number]:focus{outline:none;border-color:var(--primary)}
   .radio-row{display:flex;gap:10px}
   .radio-row label{
     flex:1;text-align:center;padding:12px 0;border:1px solid var(--line);border-radius:12px;
@@ -154,6 +160,10 @@
   .errcard .ec-date{font-weight:800}
   .errcard .ec-type{font-size:12px;color:#fff;background:var(--primary);border-radius:999px;padding:3px 10px}
   .errcard .ec-sub{font-size:13px;color:var(--sub);margin:6px 0}
+  .errcard .ec-desc,.rec .desc{
+    font-size:13px;color:var(--ink);background:var(--soft);border-radius:10px;
+    padding:8px 10px;margin:8px 0;white-space:pre-wrap;word-break:break-word
+  }
   .errcard .ec-photos{display:flex;flex-wrap:wrap;gap:6px}
   .errcard .ec-photos img{width:72px;height:72px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--line)}
   .tag-btns{display:flex;gap:6px;margin-top:10px}
@@ -286,6 +296,8 @@
             </label>
           </div>
           <div class="photos" id="photoBox"></div></label>
+        <label class="fld"><span class="lab">补充描述</span>
+          <textarea id="f_desc" rows="3" maxlength="300" placeholder="选填：记录解题思路、易错点、老师的讲解等"></textarea></label>
         <div class="form-err" id="formErr"></div>
         <button type="submit" class="submit" id="submitBtn">保存这道错题</button>
       </form>
@@ -345,6 +357,7 @@
   function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
   function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
   function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function loadLocal(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch(e){return [];}}
   function saveLocal(a){try{localStorage.setItem(LS_KEY,JSON.stringify(a));}catch(e){ toast('保存空间不足，请导出备份并清理'); }}
 
@@ -359,7 +372,8 @@
       localStorage.setItem(FORM_KEY, JSON.stringify({
         date:document.getElementById('f_date').value,
         type:(document.querySelector('input[name=ftype]:checked')||{}).value||'',
-        typeSel:state.sel.type, kps:state.sel.kps, reasons:state.sel.reasons
+        typeSel:state.sel.type, kps:state.sel.kps, reasons:state.sel.reasons,
+        desc:document.getElementById('f_desc').value
       }));
     }catch(e){}
   }
@@ -373,6 +387,7 @@
       if(s.typeSel) state.sel.type=s.typeSel;
       if(s.kps) state.sel.kps=s.kps;
       if(s.reasons) state.sel.reasons=s.reasons;
+      if(s.desc) document.getElementById('f_desc').value=s.desc;
     }catch(e){}
   }
 
@@ -592,6 +607,7 @@
           '<span class="type">'+r.习题类型+'</span>'+
           '<button class="del" data-id="'+r._id+'">删除</button></div>'+
         '<div class="meta">错题类型：'+tTags+photoCnt+'</div>'+
+        (r.补充描述?'<div class="desc">'+esc(r.补充描述)+'</div>':'')+
         '<div class="tags"><span class="tag">'+r.tag+'</span>'+kTags+rTags+'</div></div>';
     }).join('');
     Array.prototype.forEach.call(box.querySelectorAll('.del'),function(b){
@@ -669,6 +685,7 @@
         '<button class="del" data-id="'+r._id+'">删除</button></div>'+
       '<div class="ec-sub">'+(r.知识点?('知识点：'+r.知识点):'')+(r.出错原因?(' · 原因：'+r.出错原因):'')+'</div>'+
       (photos?'<div class="ec-photos">'+photos+'</div>':'<div class="ec-sub" style="color:#9AA7B8">暂无图片</div>')+
+      (r.补充描述?'<div class="ec-desc">'+esc(r.补充描述)+'</div>':'')+
       '<div class="tag-btns">'+tagBtns+'</div></div>';
   }
   function openLight(src){
@@ -906,12 +923,14 @@
     document.getElementById('f_camera').addEventListener('change',onPhotos);
     document.getElementById('f_album').addEventListener('change',onPhotos);
     document.getElementById('f_date').addEventListener('change', saveFormCache);
+    document.getElementById('f_desc').addEventListener('input', saveFormCache);
     Array.prototype.forEach.call(document.querySelectorAll('input[name=ftype]'),function(rb){ rb.addEventListener('change', saveFormCache); });
     document.getElementById('form').addEventListener('submit',function(e){
       e.preventDefault();
       var err=document.getElementById('formErr');
       var date=document.getElementById('f_date').value;
       var type=document.querySelector('input[name=ftype]:checked').value;
+      var desc=document.getElementById('f_desc').value.trim();
       if(!date){err.textContent='请选择测试时间';return;}
       if(!state.sel.type){err.textContent='请选择错题类型';return;}
       var btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='保存中…';
@@ -919,11 +938,12 @@
       addRecord({
         测试时间:date, 习题类型:type,
         错题类型:state.sel.type, 知识点:state.sel.kps.join('、'), 出错原因:state.sel.reasons.join('、'),
-        photos:photos
+        补充描述:desc, photos:photos
       }).then(function(){
         btn.disabled=false; btn.textContent='保存这道错题';
         clearFormCache();
         state.sel={type:'',kps:[],reasons:[],photos:[]};
+        document.getElementById('f_desc').value='';
         renderTypeChips(); renderKpChips(); renderReasonChips(); renderPhotos();
         toast('已保存到本机 ✓');
         document.querySelector('nav.tabs button[data-tab="diag"]').click();
@@ -948,7 +968,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v13';
+  var SW_VER = 'v14';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
