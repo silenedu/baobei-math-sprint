@@ -124,14 +124,10 @@
   .photo-thumb img{width:100%;height:100%;object-fit:cover;cursor:pointer}
   .photo-thumb .rm{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;font-size:13px;line-height:22px;cursor:pointer;padding:0}
   /* 错题本 */
-  .book-filter{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
-  .book-filter .bf-lab{font-size:14px;font-weight:700;color:var(--ink)}
-  .book-filter select{
-    flex:1;min-width:160px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;
-    font-size:15px;background:#fff;color:var(--ink);-webkit-appearance:none;appearance:none;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%237C8AA0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 5l4 4 4-4'/></svg>");
-    background-repeat:no-repeat;background-position:right 12px center;padding-right:34px
-  }
+  .book-filter{position:sticky;top:0;z-index:15;background:var(--card);padding:4px 0 12px;margin:-2px 0 12px;border-bottom:1px solid transparent}
+  .book-filter.stuck{border-bottom-color:var(--line)}
+  .book-filter .chips{margin-bottom:0}
+  .book-summary{font-size:13px;color:var(--sub);margin:0 0 12px}
   .list-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:4px}
   .tool-btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer}
   .tool-btn.warn{border-color:#FFD0D0;color:var(--warn);background:#FFF5F5}
@@ -278,10 +274,9 @@
   <!-- 错题本 -->
   <section id="tab-book" hidden>
     <div class="card">
-      <h3><span class="bar"></span>按知识点查看错题图片</h3>
-      <div class="book-filter">
-        <span class="bf-lab">知识点</span>
-        <select id="bookFilter"><option value="">全部</option></select>
+      <h3><span class="bar"></span>错题本</h3>
+      <div class="book-filter" id="bookFilter">
+        <div class="chips" id="bookFilterChips"><span class="chip on" data-v="">全部</span></div>
       </div>
       <div id="bookList"></div>
     </div>
@@ -571,22 +566,22 @@
   function renderBook(){
     var box=document.getElementById('bookList');
     if(!state.records.length){ box.innerHTML='<div class="empty">还没有错题，去「录入」记一笔吧～</div>'; return; }
-    var groups={};
-    state.records.forEach(function(r){
-      var kps=(r.知识点||'未分类').split('、').filter(Boolean);
-      if(!kps.length) kps=['未分类'];
-      kps.forEach(function(k){ (groups[k]=groups[k]||[]).push(r); });
-    });
-    // 知识点筛选
-    var filter=state.bookFilter;
-    var keys=Object.keys(groups).sort().filter(function(k){ return !filter || k===filter; });
-    if(filter && keys.length===0){ box.innerHTML='<div class="empty">该知识点暂无错题</div>'; return; }
     var byTime=function(a,b){ return a.测试时间<b.测试时间?1:(a.测试时间>b.测试时间?-1:0); };
-    box.innerHTML = keys.map(function(k){
-      var items=groups[k].slice().sort(byTime);
-      return '<div class="kp-group"><h4>'+k+' <span class="cnt">'+items.length+' 题</span></h4>'+
+    var filter=state.bookFilter;
+    if(!filter){
+      // 全部：不分组，按时间倒序
+      var all=state.records.slice().sort(byTime);
+      box.innerHTML = '<div class="book-summary">全部错题 · 共 '+all.length+' 道 · 按时间倒序</div>'+
+        all.map(function(r){ return errCard(r); }).join('');
+    } else {
+      var items=state.records.filter(function(r){
+        var kps=(r.知识点||'未分类').split('、').filter(Boolean);
+        return kps.indexOf(filter)>=0;
+      }).slice().sort(byTime);
+      if(!items.length){ box.innerHTML='<div class="empty">「'+filter+'」暂无错题</div>'; return; }
+      box.innerHTML = '<div class="kp-group"><h4>'+filter+' <span class="cnt">'+items.length+' 题</span></h4>'+
         items.map(function(r){ return errCard(r); }).join('')+'</div>';
-    }).join('');
+    }
     // 绑定
     Array.prototype.forEach.call(box.querySelectorAll('.errcard'),function(card){
       var id=card.getAttribute('data-id');
@@ -602,17 +597,29 @@
       if(del) del.addEventListener('click',function(){ if(confirm('确定删除这条错题？')) removeRecord(id); });
     });
   }
-  function populateBookFilter(){
-    var sel=document.getElementById('bookFilter');
+  /* 错题本知识点筛选：全部铺开的 chips */
+  function renderBookFilterChips(){
+    var box=document.getElementById('bookFilterChips');
     var set={};
     state.records.forEach(function(r){
       (r.知识点||'未分类').split('、').filter(Boolean).forEach(function(k){ set[k]=true; });
     });
-    var opts=['<option value="">全部</option>'].concat(
-      Object.keys(set).sort().map(function(k){ return '<option value="'+k+'">'+k+'</option>'; })
-    );
-    sel.innerHTML=opts.join('');
-    sel.value=state.bookFilter||'';
+    var keys=Object.keys(set).sort();
+    // 若当前选中的知识点已不存在（错题被删完），回退到「全部」
+    if(state.bookFilter && keys.indexOf(state.bookFilter)<0) state.bookFilter='';
+    var chips=['<span class="chip'+(!state.bookFilter?' on':'')+'" data-v="">全部</span>'];
+    keys.forEach(function(k){
+      chips.push('<span class="chip'+(state.bookFilter===k?' on':'')+'" data-v="'+k+'">'+k+'</span>');
+    });
+    box.innerHTML=chips.join('');
+    Array.prototype.forEach.call(box.querySelectorAll('.chip'),function(c){
+      c.addEventListener('click',function(){
+        state.bookFilter=c.getAttribute('data-v')||'';
+        Array.prototype.forEach.call(box.querySelectorAll('.chip'),function(x){x.classList.remove('on');});
+        c.classList.add('on');
+        renderBook();
+      });
+    });
   }
   function errCard(r){
     var photos=(r.photos||[]).map(function(p){
@@ -782,7 +789,7 @@
   function refreshAll(){
     try { state.records = loadAll(); } catch(e){ state.records = state.records || []; }
     renderDiagnostics(); renderList();
-    if(!document.getElementById('tab-book').hidden){ populateBookFilter(); renderBook(); }
+    if(!document.getElementById('tab-book').hidden){ renderBookFilterChips(); renderBook(); }
     return Promise.resolve();
   }
 
@@ -795,7 +802,7 @@
         b.classList.add('active');
         ['diag','add','book','list'].forEach(function(k){ document.getElementById('tab-'+k).hidden = (k!==tab); });
         if(tab==='diag') renderDiagnostics();
-        if(tab==='book'){ populateBookFilter(); renderBook(); }
+        if(tab==='book'){ renderBookFilterChips(); renderBook(); }
       });
     });
   }
@@ -822,20 +829,14 @@
     document.getElementById('periodNext').addEventListener('click',function(){ shiftCursor(state.period,1); renderDiagnostics(); });
     document.getElementById('periodToday').addEventListener('click',function(){ state.cursor=new Date(); renderDiagnostics(); });
   }
-  function bindBookFilter(){
-    var sel=document.getElementById('bookFilter');
-    sel.addEventListener('change',function(){
-      state.bookFilter=sel.value;
-      renderBook();
-    });
-  }
-  /* 诊断页吸顶：滚动时给吸顶条加阴影 */
+  /* 吸顶：滚动时给吸顶条加阴影（诊断页时间栏 + 错题本筛选栏） */
   function bindSticky(){
-    var el=document.getElementById('diagSticky');
-    if(!el) return;
+    var els=[document.getElementById('diagSticky'), document.getElementById('bookFilter')].filter(Boolean);
     var onScroll=function(){
-      if(el.getBoundingClientRect().top<=0) el.classList.add('stuck');
-      else el.classList.remove('stuck');
+      els.forEach(function(el){
+        if(el.getBoundingClientRect().top<=0) el.classList.add('stuck');
+        else el.classList.remove('stuck');
+      });
     };
     window.addEventListener('scroll', onScroll, {passive:true});
     onScroll();
@@ -899,7 +900,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v7';
+  var SW_VER = 'v8';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
@@ -912,7 +913,7 @@
   }
 
 document.addEventListener('DOMContentLoaded',function(){
-  bindTabs(); bindSeg(); bindPeriodNav(); bindBookFilter(); bindSticky(); bindForm(); bindData();
+  bindTabs(); bindSeg(); bindPeriodNav(); bindSticky(); bindForm(); bindData();
   registerSW();
   refreshAll();
 });
