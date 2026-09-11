@@ -201,16 +201,19 @@
   .q-type{font-size:12px;color:#fff;background:var(--primary);border-radius:999px;padding:2px 9px;flex:none}
   .q-sub{font-size:12.5px;color:var(--sub);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .q-desc{font-size:12.5px;color:var(--ink);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  /* 右侧：有图时图片为主，且放右侧以保持日期左对齐 */
   .q-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
-  .q-thumbwrap{position:relative;flex:none;line-height:0}
-  .q-thumb{width:92px;height:92px;border-radius:12px;object-fit:cover;display:block;border:1px solid var(--line)}
-  .q-photocount{position:absolute;right:6px;bottom:6px;background:rgba(20,28,40,.62);color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:1px 6px;line-height:1.6}
   .q-metarow{display:flex;align-items:center;gap:8px}
-  .q-tag{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;background:var(--t0);color:#fff;white-space:nowrap}
+  .q-tag{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;background:var(--t0);color:#fff;white-space:nowrap;flex:none}
   .q-tag.t1{background:var(--t1)}
   .q-tag.t2{background:var(--t2)}
   .q-arrow{width:18px;height:18px;color:#B9C4D4;flex:none}
+  /* 有图：图片整块贴右侧、铺满卡片高度，卡片以图为主 */
+  .q-item.has-img{padding:0;align-items:stretch;overflow:hidden;min-height:110px}
+  .q-item.has-img .q-main{display:flex;flex-direction:column;padding:12px 12px 12px 13px}
+  .q-item.has-img .q-tag{margin-top:auto;align-self:flex-start}
+  .q-media{flex:none;width:40%;min-width:112px;max-width:172px;align-self:stretch;position:relative;background:#EEF2F8}
+  .q-media img{width:100%;height:100%;object-fit:cover;display:block}
+  .q-photocount{position:absolute;right:8px;bottom:8px;background:rgba(20,28,40,.55);color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:1px 7px;line-height:1.7}
   /* ===== 错题详情卡片（弹层 + 左右滑动）===== */
   .detail{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:16px}
   .detail-mask{position:absolute;inset:0;background:rgba(20,28,40,.5)}
@@ -240,10 +243,15 @@
   .d-row:last-child{border-bottom:none}
   .d-k{color:var(--sub);flex:none;width:66px}
   .d-v{color:var(--ink);flex:1;word-break:break-word;white-space:pre-wrap}
-  .d-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
-  .d-photos img{width:88px;height:88px;border-radius:12px;object-fit:cover;cursor:pointer;border:1px solid var(--line)}
-  .d-none{font-size:13px;color:#9AA7B8;padding:6px 0}
-  .d-photo-sec{margin-top:14px}
+  /* 详情：有图时以图为主（大图 + 多图缩略条） */
+  .d-hero{
+    width:100%;height:34vh;min-height:150px;max-height:290px;background:#F1F5FB;
+    border-radius:14px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:10px
+  }
+  .d-hero img{max-width:100%;max-height:100%;object-fit:contain;display:block;cursor:zoom-in}
+  .d-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
+  .d-strip img{width:54px;height:54px;border-radius:10px;object-fit:cover;flex:none;border:2px solid transparent;background:#eef2f8;cursor:pointer}
+  .d-strip img.on{border-color:var(--primary)}
   .d-foot{flex:none;padding:12px 16px;border-top:1px solid var(--line);background:#fff}
   .d-tags{display:flex;gap:8px}
   .d-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
@@ -794,22 +802,22 @@
   function qItem(r){
     var ti=TAGS.indexOf(r.tag); if(ti<0) ti=0;
     var hasImg=!!(r.photos&&r.photos.length);
-    var thumb=hasImg?('<div class="q-thumbwrap"><img class="q-thumb" src="'+r.photos[0].data+'" alt="">'+
-      (r.photos.length>1?'<span class="q-photocount">'+r.photos.length+'</span>':'')+'</div>'):'';
     var sub=[];
     if(r.知识点) sub.push('知识点：'+esc(r.知识点));
     if(r.出错原因) sub.push('原因：'+esc(r.出错原因));
-    return '<div class="q-item'+(ti?' t'+ti:'')+(hasImg?' has-img':'')+'" data-id="'+r._id+'">'+
-      '<div class="q-main">'+
+    var tagHTML='<span class="q-tag'+(ti?' t'+ti:'')+'">'+esc(r.tag||'待复习')+'</span>';
+    var main='<div class="q-main">'+
         '<div class="q-top"><span class="q-date">'+r.测试时间+'</span><span class="q-type">'+esc(r.错题类型||'')+'</span></div>'+
         (sub.length?'<div class="q-sub">'+sub.join(' · ')+'</div>':'')+
         (r.补充描述?'<div class="q-desc">'+esc(r.补充描述)+'</div>':'')+
-      '</div>'+
-      '<div class="q-side">'+thumb+
-        '<div class="q-metarow"><span class="q-tag'+(ti?' t'+ti:'')+'">'+esc(r.tag||'待复习')+'</span>'+
-        '<svg class="q-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>'+
-      '</div>'+
-    '</div>';
+        (hasImg?tagHTML:'')+
+      '</div>';
+    var side=hasImg
+      ? '<div class="q-media"><img src="'+r.photos[0].data+'" alt="">'+
+          (r.photos.length>1?'<span class="q-photocount">'+r.photos.length+'</span>':'')+'</div>'
+      : '<div class="q-side">'+tagHTML+
+          '<svg class="q-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>';
+    return '<div class="q-item'+(ti?' t'+ti:'')+(hasImg?' has-img':'')+'" data-id="'+r._id+'">'+main+side+'</div>';
   }
   /* ---------- 错题详情卡片（弹层 + 左右滑动） ---------- */
   function currentIndex(){
@@ -819,6 +827,16 @@
   }
   function detailBodyHTML(r){
     function row(k,v){ return '<div class="d-row"><span class="d-k">'+k+'</span><span class="d-v">'+v+'</span></div>'; }
+    var photos=(r.photos||[]).map(function(p){ return p.data; });
+    var top='';
+    if(photos.length){
+      top='<div class="d-hero"><img id="dHero" src="'+photos[0]+'" alt="题目"></div>';
+      if(photos.length>1){
+        top+='<div class="d-strip" id="dStrip">'+photos.map(function(src,i){
+          return '<img src="'+src+'" data-i="'+i+'" class="'+(i===0?'on':'')+'" alt="">';
+        }).join('')+'</div>';
+      }
+    }
     var rows='';
     rows+=row('测试时间', r.测试时间||'—');
     rows+=row('习题类型', esc(r.习题类型||'—'));
@@ -826,10 +844,7 @@
     rows+=row('知识点', r.知识点?esc(r.知识点):'—');
     rows+=row('出错原因', r.出错原因?esc(r.出错原因):'—');
     if(r.补充描述) rows+=row('补充描述', esc(r.补充描述));
-    var photos=(r.photos||[]).map(function(p){ return '<img src="'+p.data+'" alt="题目">'; }).join('');
-    var ph = photos?('<div class="d-photos">'+photos+'</div>') : '<div class="d-none">暂无图片</div>';
-    return '<div class="d-sec"><div class="d-sec-t">错题信息</div>'+rows+'</div>'+
-      '<div class="d-photo-sec"><div class="d-sec-t">题目图片</div>'+ph+'</div>';
+    return top+'<div class="d-sec"><div class="d-sec-t">错题信息</div>'+rows+'</div>';
   }
   function renderDetail(dir){
     var list=state.bookList||[];
@@ -844,8 +859,14 @@
       return '<button class="tag-btn t'+ti+(r.tag===t?' on':'')+'" data-tag="'+t+'">'+t+'</button>';
     }).join('');
     document.getElementById('detailBody').scrollTop=0;
-    Array.prototype.forEach.call(document.querySelectorAll('#detailBody .d-photos img'),function(img){
-      img.addEventListener('click',function(){ openLight(img.getAttribute('src')); });
+    var hero=document.querySelector('#detailBody #dHero');
+    if(hero) hero.addEventListener('click',function(){ openLight(hero.getAttribute('src')); });
+    Array.prototype.forEach.call(document.querySelectorAll('#detailBody #dStrip img'),function(im){
+      im.addEventListener('click',function(){
+        if(hero) hero.setAttribute('src', im.getAttribute('src'));
+        Array.prototype.forEach.call(document.querySelectorAll('#detailBody #dStrip img'),function(x){x.classList.remove('on');});
+        im.classList.add('on');
+      });
     });
     Array.prototype.forEach.call(document.querySelectorAll('#detailTags .tag-btn'),function(btn){
       btn.addEventListener('click',function(){
@@ -1196,7 +1217,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v17';
+  var SW_VER = 'v18';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
