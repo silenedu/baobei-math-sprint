@@ -341,14 +341,16 @@
   var LS_KEY = 'mathsprint_records_v2';
   var HIER_KEY = 'mathsprint_hier_v1';
   var SEED_FLAG = 'mathsprint_seeded_v2';
+  var MIG_HIER = 'mathsprint_mig_hier_v1';   /* 图形比大小：数感 → 图形空间 */
+  var MIG_REASON = 'mathsprint_mig_reason_v1';/* 题目看不懂 → 题目没看懂 */
   var PALETTE = ['#4D96FF','#FF9F45','#37C997','#FF6B6B','#A66CFF','#4DCFA8','#FFB84D','#6BCBFF','#FF7FB5','#9C9CFF'];
   var DEFAULT_HIER = {
-    '数感':['计算','巧算','图形比大小'],
+    '数感':['计算','巧算'],
     '逻辑推理':['枚举','找规律','等量代换'],
-    '图形空间':['三视图','图形认知','对称'],
+    '图形空间':['三视图','图形认知','对称','图形比大小'],
     '综合应用题':['统计图','加减法应用','乘除应用']
   };
-  var PRESET = { reasons:['没看题目','题目看不懂','计算粗心','基础概念不清晰','方法不熟练'] };
+  var PRESET = { reasons:['没看题目','题目没看懂','计算粗心','基础概念不清晰','方法不熟练'] };
   var TAGS = ['待复习','已复习','已攻克'];
   var state = { records:[], period:'day', cursor:new Date(), hier:{}, sel:{type:'', kps:[], reasons:[], photos:[]}, bookFilter:'' };
 
@@ -362,8 +364,44 @@
   function saveLocal(a){try{localStorage.setItem(LS_KEY,JSON.stringify(a));}catch(e){ toast('保存空间不足，请导出备份并清理'); }}
 
   /* 层级 错题类型→知识点 持久化 */
-  function loadHier(){ try{ var h=JSON.parse(localStorage.getItem(HIER_KEY)); if(h&&typeof h==='object') return h; }catch(e){} return JSON.parse(JSON.stringify(DEFAULT_HIER)); }
+  function loadHier(){
+    var h=null;
+    try{ var s=JSON.parse(localStorage.getItem(HIER_KEY)); if(s&&typeof s==='object') h=s; }catch(e){}
+    if(!h) h=JSON.parse(JSON.stringify(DEFAULT_HIER));
+    /* 一次性迁移：把「图形比大小」从「数感」移到「图形空间」 */
+    try{
+      if(!localStorage.getItem(MIG_HIER)){
+        var changed=false;
+        if(h['数感'] && h['数感'].indexOf('图形比大小')>=0){
+          h['数感'].splice(h['数感'].indexOf('图形比大小'),1); changed=true;
+        }
+        if(h['图形空间'] && h['图形空间'].indexOf('图形比大小')<0){
+          h['图形空间'].push('图形比大小'); changed=true;
+        }
+        if(changed) localStorage.setItem(HIER_KEY, JSON.stringify(h));
+        localStorage.setItem(MIG_HIER,'1');
+      }
+    }catch(e){}
+    return h;
+  }
   function saveHier(){ try{ localStorage.setItem(HIER_KEY, JSON.stringify(state.hier)); }catch(e){} }
+  /* 一次性迁移：历史记录里的「题目看不懂」改为「题目没看懂」 */
+  function migrateRecords(){
+    try{
+      if(localStorage.getItem(MIG_REASON)) return;
+      var arr=loadLocal(), changed=false;
+      arr.forEach(function(r){
+        if(r.出错原因 && r.出错原因.indexOf('题目看不懂')>=0){
+          r.出错原因=r.出错原因.split('、')
+            .map(function(s){return s.trim()==='题目看不懂'?'题目没看懂':s.trim();})
+            .filter(Boolean).join('、');
+          changed=true;
+        }
+      });
+      if(changed) saveLocal(arr);
+      localStorage.setItem(MIG_REASON,'1');
+    }catch(e){}
+  }
 
   /* 表单本地缓存 */
   var FORM_KEY='mathsprint_form_v2', _fcTimer=null;
@@ -396,16 +434,16 @@
     if(localStorage.getItem(SEED_FLAG)) return;
     var seed=[
       {_id:'seed1',测试时间:'2026-09-03',习题类型:'专项训练',错题类型:'数感',知识点:'计算、巧算',出错原因:'计算粗心、方法不熟练',tag:'已攻克',photos:[]},
-      {_id:'seed2',测试时间:'2026-09-06',习题类型:'综合训练',错题类型:'图形空间',知识点:'三视图',出错原因:'题目看不懂',tag:'已复习',photos:[]},
+      {_id:'seed2',测试时间:'2026-09-06',习题类型:'综合训练',错题类型:'图形空间',知识点:'三视图',出错原因:'题目没看懂',tag:'已复习',photos:[]},
       {_id:'seed3',测试时间:'2026-09-09',习题类型:'专项训练',错题类型:'逻辑推理',知识点:'枚举',出错原因:'没看题目',tag:'待复习',photos:[]},
-      {_id:'seed4',测试时间:'2026-09-10',习题类型:'综合训练',错题类型:'数感',知识点:'图形比大小',出错原因:'计算粗心',tag:'待复习',photos:[]},
+      {_id:'seed4',测试时间:'2026-09-10',习题类型:'综合训练',错题类型:'图形空间',知识点:'图形比大小',出错原因:'计算粗心',tag:'待复习',photos:[]},
       {_id:'seed5',测试时间:'2026-09-11',习题类型:'专项训练',错题类型:'逻辑推理',知识点:'等量代换',出错原因:'基础概念不清晰',tag:'待复习',photos:[]}
     ];
     saveLocal(seed); localStorage.setItem(SEED_FLAG,'1');
   }
 
   /* ---------- 数据层（纯本地） ---------- */
-  function loadAll(){ try{ seedIfEmpty(); }catch(e){} state.hier=loadHier(); return loadLocal(); }
+  function loadAll(){ try{ seedIfEmpty(); }catch(e){} state.hier=loadHier(); try{ migrateRecords(); }catch(e){} return loadLocal(); }
   function addRecord(flat){
     var rec = Object.assign({_id:'rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), tag:'待复习', photos:[]}, flat);
     var arr = loadLocal(); arr.push(rec); saveLocal(arr);
@@ -968,7 +1006,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v14';
+  var SW_VER = 'v15';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
