@@ -484,16 +484,18 @@
   function hbar(segs){
     if(!segs.length) return '<div style="color:#9AA7B8;font-size:13px">暂无数据</div>';
     var max=Math.max.apply(null,segs.map(function(s){return s.value;}).concat([1]));
-    var lw=84, bw=200, rowH=30, gap=10, h=segs.length*(rowH+gap);
+    // 每项两行：上行「名称 …… 数量」，下行整条进度条，避免长文字与条形重叠
+    var W=320, rowH=22, labelH=20, gap=14, h=segs.length*(labelH+rowH+gap)-gap;
     var bars='';
     segs.forEach(function(s,i){
-      var y=i*(rowH+gap), w=Math.max(4,Math.round(s.value/max*bw));
-      bars+='<text x="0" y="'+(y+rowH/2+4)+'" font-size="13" fill="#23303F">'+s.label+'</text>';
-      bars+='<rect x="'+lw+'" y="'+y+'" width="'+bw+'" height="'+rowH+'" rx="8" fill="#EEF1F6"/>';
-      bars+='<rect x="'+lw+'" y="'+y+'" width="'+w+'" height="'+rowH+'" rx="8" fill="'+s.color+'"/>';
-      bars+='<text x="'+(lw+bw+8)+'" y="'+(y+rowH/2+4)+'" font-size="13" fill="#7C8AA0">'+s.value+'</text>';
+      var y=i*(labelH+rowH+gap);
+      var bw=Math.max(8,Math.round(s.value/max*W));
+      bars+='<text x="0" y="'+(y+13)+'" font-size="13" fill="#23303F">'+s.label+'</text>';
+      bars+='<text x="'+W+'" y="'+(y+13)+'" text-anchor="end" font-size="13" font-weight="700" fill="#7C8AA0">'+s.value+'</text>';
+      bars+='<rect x="0" y="'+(y+labelH)+'" width="'+W+'" height="'+rowH+'" rx="8" fill="#EEF1F6"/>';
+      bars+='<rect x="0" y="'+(y+labelH)+'" width="'+bw+'" height="'+rowH+'" rx="8" fill="'+s.color+'"/>';
     });
-    return '<svg class="chart" viewBox="0 0 '+(lw+bw+40)+' '+h+'" style="max-width:420px">'+bars+'</svg>';
+    return '<svg class="chart" viewBox="0 0 '+W+' '+h+'" style="max-width:420px">'+bars+'</svg>';
   }
   function vbar(items){
     if(!items.length) return '<div style="color:#9AA7B8;font-size:13px">暂无数据</div>';
@@ -903,7 +905,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v10';
+  var SW_VER = 'v11';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
