@@ -523,7 +523,7 @@
   function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||'')+'">'+v+'</div><div class="l">'+l+'</div></div>';}
   function renderDiagnostics(){
     var sc = periodScope(state.period, state.cursor);
-    document.getElementById('scopeTitle').textContent = sc.title;
+    document.getElementById('scopeTitle').textContent = sc.label+' 诊断';
     document.getElementById('periodLabel').textContent = sc.label;
     document.getElementById('periodToday').textContent = '回到'+(state.period==='day'?'今天':state.period==='week'?'本周':'本月');
     var recs = state.records.filter(function(r){return inScope(r,sc);});
@@ -874,7 +874,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v5';
+  var SW_VER = 'v6';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
