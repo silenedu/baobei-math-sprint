@@ -803,6 +803,8 @@
         ['diag','add','book','list'].forEach(function(k){ document.getElementById('tab-'+k).hidden = (k!==tab); });
         if(tab==='diag') renderDiagnostics();
         if(tab==='book'){ renderBookFilterChips(); renderBook(); }
+        window.scrollTo(0,0);
+        updateSticky();
       });
     });
   }
@@ -830,16 +832,17 @@
     document.getElementById('periodToday').addEventListener('click',function(){ state.cursor=new Date(); renderDiagnostics(); });
   }
   /* 吸顶：滚动时给吸顶条加阴影（诊断页时间栏 + 错题本筛选栏） */
+  var _stickyEls=[];
+  function updateSticky(){
+    _stickyEls.forEach(function(el){
+      if(el.getBoundingClientRect().top<=0) el.classList.add('stuck');
+      else el.classList.remove('stuck');
+    });
+  }
   function bindSticky(){
-    var els=[document.getElementById('diagSticky'), document.getElementById('bookFilter')].filter(Boolean);
-    var onScroll=function(){
-      els.forEach(function(el){
-        if(el.getBoundingClientRect().top<=0) el.classList.add('stuck');
-        else el.classList.remove('stuck');
-      });
-    };
-    window.addEventListener('scroll', onScroll, {passive:true});
-    onScroll();
+    _stickyEls=[document.getElementById('diagSticky'), document.getElementById('bookFilter')].filter(Boolean);
+    window.addEventListener('scroll', updateSticky, {passive:true});
+    updateSticky();
   }
   function bindForm(){
     state.hier = loadHier();
@@ -900,7 +903,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v8';
+  var SW_VER = 'v9';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
