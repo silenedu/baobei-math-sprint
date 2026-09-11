@@ -184,6 +184,8 @@
   .tag.r{background:#FFF0F0;color:var(--warn)}
   .tag.k{background:#EAFaf3;color:var(--ok)}
   .empty{text-align:center;color:var(--sub);padding:40px 0;font-size:14px}
+  .ver{text-align:center;color:#B9C4D4;font-size:12px;margin:22px 0 6px}
+  .ver-refresh{border:none;background:none;color:var(--primary-d);font-size:12px;text-decoration:underline;cursor:pointer;padding:0}
   /* ===== 错题列表项（可点击）===== */
   .q-list{display:block}
   .q-item{
@@ -212,7 +214,7 @@
   .q-item.has-img .q-main{display:flex;flex-direction:column;padding:12px 12px 12px 13px}
   .q-item.has-img .q-tag{margin-top:auto;align-self:flex-start}
   .q-media{flex:none;width:40%;min-width:112px;max-width:172px;align-self:stretch;position:relative;background:#EEF2F8}
-  .q-media img{width:100%;height:100%;object-fit:cover;display:block}
+  .q-media img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
   .q-photocount{position:absolute;right:8px;bottom:8px;background:rgba(20,28,40,.55);color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:1px 7px;line-height:1.7}
   /* ===== 错题详情卡片（弹层 + 左右滑动）===== */
   .detail{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -401,6 +403,7 @@
     </div>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
     <div id="recordList"></div>
+    <div class="ver"><span id="verLine"></span> · <button type="button" class="ver-refresh" id="verRefresh">检查更新</button></div>
   </section>
 </main>
 
@@ -1217,7 +1220,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v18';
+  var SW_VER = 'v19';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
@@ -1228,9 +1231,24 @@
     });
     navigator.serviceWorker.addEventListener('controllerchange',function(){ window.location.reload(); });
   }
+  /* 手动检查更新：清缓存 + 注销 SW 后重新加载，确保拿到最新版本 */
+  function forceUpdate(){
+    var btn=document.getElementById('verRefresh');
+    if(btn){ btn.disabled=true; btn.textContent='更新中…'; }
+    var p=Promise.resolve();
+    if('caches' in window){
+      p=p.then(function(){ return caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }); });
+    }
+    if('serviceWorker' in navigator){
+      p=p.then(function(){ return navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); }); });
+    }
+    p.then(function(){ location.reload(); }, function(){ location.reload(); });
+  }
 
 document.addEventListener('DOMContentLoaded',function(){
   bindTabs(); bindSeg(); bindPeriodNav(); bindSticky(); bindForm(); bindData(); bindDetail();
+  var vl=document.getElementById('verLine'); if(vl) vl.textContent='版本 '+SW_VER;
+  var vr=document.getElementById('verRefresh'); if(vr) vr.addEventListener('click',forceUpdate);
   registerSW();
   refreshAll();
 });
