@@ -1,5 +1,5 @@
 /* 宝贝Math小跑计划 — Service Worker（离线缓存，可“添加到主屏幕”当 App） */
-const CACHE = 'mathsprint-v14';
+const CACHE = 'mathsprint-v15';
 const ASSETS = [
   './',
   './index.html',
