@@ -80,6 +80,20 @@
   label.fld .lab{font-size:14px;font-weight:700;margin-bottom:7px;display:block}
   .req{color:var(--warn)}
   .hint{font-size:12px;color:var(--sub);margin:-4px 0 8px}
+  .lab .badge{
+    font-size:11px;font-weight:600;color:var(--sub);background:var(--soft);
+    border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px
+  }
+  /* 二级字段（知识点）：缩进 + 左侧连接线，体现层级 */
+  .fld-sub{padding-left:14px;margin-left:2px;border-left:2px solid var(--line);transition:border-color .2s}
+  .fld-sub.locked{border-left-style:dashed;border-left-color:#DCE4EF}
+  .fld-sub.locked .addrow{opacity:.45;pointer-events:none}
+  .kp-locked{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:44px;height:36px;border:1px dashed #D6DFEC;background:#FAFBFE;color:#AEBACB;
+    border-radius:12px;cursor:pointer
+  }
+  .kp-locked:active{background:#F1F5FB}
   input[type=date],input[type=number]{
     width:100%;padding:12px 12px;border:1px solid var(--line);border-radius:12px;
     font-size:16px;background:#fff;color:var(--ink)
@@ -115,6 +129,7 @@
   }
   .toast.show{opacity:1}
   /* 照片上传 */
+  .up-row{display:flex;gap:10px;flex-wrap:wrap}
   .upload-btn{
     display:inline-flex;align-items:center;gap:6px;border:1px dashed var(--primary);color:var(--primary-d);
     background:#fff;border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:700;font-size:14px
@@ -248,22 +263,28 @@
             <label><input type="radio" name="ftype" value="专项训练" checked><span>专项训练</span></label>
             <label><input type="radio" name="ftype" value="综合训练"><span>综合训练</span></label>
           </div></label>
-        <label class="fld"><span class="lab">错题类型（一级）<span class="req">*</span></span>
+        <label class="fld"><span class="lab">错题类型<span class="req">*</span></span>
           <div class="chips" id="chipsType"></div>
-          <div class="addrow"><input id="addType" placeholder="手填新类型，如：时间推理"><button type="button" id="btnAddType">添加</button></div>
-          <div class="hint">知识点是其二级选项，选好错题类型后在下方面选</div></label>
-        <label class="fld"><span class="lab">知识点（二级，可多选 / 可手填）</span>
+          <div class="addrow"><input id="addType" placeholder="手填新类型，如：时间推理"><button type="button" id="btnAddType">添加</button></div></label>
+        <label class="fld fld-sub" id="kpField"><span class="lab">知识点<span class="badge">多选</span></span>
           <div class="chips" id="chipsKp"></div>
           <div class="addrow"><input id="addKp" placeholder="手填新知识点，如：找规律"><button type="button" id="btnAddKp">添加</button></div></label>
-        <label class="fld"><span class="lab">出错原因（可多选 / 可手填）</span>
+        <label class="fld"><span class="lab">出错原因<span class="badge">多选</span></span>
           <div class="chips" id="chipsReason"></div>
           <div class="addrow"><input id="addReason" placeholder="手填新原因，如：读题太快"><button type="button" id="btnAddReason">添加</button></div></label>
-        <label class="fld"><span class="lab">拍照上传题目（可多张）</span>
-          <label class="upload-btn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            拍照 / 选图
-            <input type="file" id="f_photos" accept="image/*" capture="environment" multiple hidden>
-          </label>
+        <label class="fld"><span class="lab">题目图片<span class="badge">可多张</span></span>
+          <div class="up-row">
+            <label class="upload-btn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              拍照
+              <input type="file" id="f_camera" accept="image/*" capture="environment" multiple hidden>
+            </label>
+            <label class="upload-btn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 16l-5-5L5 20"/></svg>
+              相册
+              <input type="file" id="f_album" accept="image/*" multiple hidden>
+            </label>
+          </div>
           <div class="photos" id="photoBox"></div></label>
         <div class="form-err" id="formErr"></div>
         <button type="submit" class="submit" id="submitBtn">保存这道错题</button>
@@ -688,9 +709,18 @@
       });
     });
   }
+  var LOCK_SVG='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>';
   function renderKpChips(){
     var box=document.getElementById('chipsKp');
-    if(!state.sel.type){ box.innerHTML='<span style="color:#9AA7B8;font-size:13px">请先选「错题类型」</span>'; return; }
+    var field=document.getElementById('kpField');
+    if(!state.sel.type){
+      if(field) field.classList.add('locked');
+      box.innerHTML='<span class="kp-locked" id="kpLocked" role="button" tabindex="0" aria-label="先选择上方错题类型">'+LOCK_SVG+'</span>';
+      var lk=document.getElementById('kpLocked');
+      if(lk) lk.addEventListener('click',function(){ toast('请先选上面的错题类型'); });
+      return;
+    }
+    if(field) field.classList.remove('locked');
     var arr=state.hier[state.sel.type]||[];
     var html='';
     arr.forEach(function(p){
@@ -866,14 +896,15 @@
     bindAdd('type','addType','btnAddType');
     bindAdd('kp','addKp','btnAddKp');
     bindAdd('reason','addReason','btnAddReason');
-    var photoInput=document.getElementById('f_photos');
-    photoInput.addEventListener('change',function(e){
+    function onPhotos(e){
       var files=e.target.files; if(!files||!files.length) return;
       Array.prototype.forEach.call(files,function(f){
         compressFile(f).then(function(p){ state.sel.photos.push(p); renderPhotos(); });
       });
       e.target.value='';
-    });
+    }
+    document.getElementById('f_camera').addEventListener('change',onPhotos);
+    document.getElementById('f_album').addEventListener('change',onPhotos);
     document.getElementById('f_date').addEventListener('change', saveFormCache);
     Array.prototype.forEach.call(document.querySelectorAll('input[name=ftype]'),function(rb){ rb.addEventListener('change', saveFormCache); });
     document.getElementById('form').addEventListener('submit',function(e){
@@ -917,7 +948,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v12';
+  var SW_VER = 'v13';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
