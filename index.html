@@ -29,17 +29,6 @@
   .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
   .brand svg{width:30px;height:30px}
   .store{font-size:12px;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
-  .today{
-    max-width:760px;margin:4px auto 0;background:linear-gradient(120deg,#4D96FF,#6FB1FF);
-    color:#fff;border-radius:18px;padding:14px 16px;display:flex;align-items:center;
-    justify-content:space-between;gap:12px;box-shadow:0 8px 20px rgba(77,150,255,.25)
-  }
-  .today .t-h{font-size:13px;opacity:.9}
-  .today .t-b{font-size:14px;font-weight:700}
-  .today .t-go{
-    background:#fff;color:var(--primary-d);border:none;border-radius:999px;
-    padding:9px 16px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap
-  }
   nav.tabs{
     position:fixed;left:0;right:0;bottom:0;z-index:30;
     display:flex;background:#fff;border-top:1px solid var(--line);
@@ -65,6 +54,15 @@
   .period-nav .pn-label{font-size:14px;font-weight:700;color:var(--ink);min-width:120px;text-align:center}
   .period-nav .pn-today{border:1px solid var(--line);background:#fff;color:var(--sub);border-radius:999px;padding:7px 12px;font-size:12px;cursor:pointer;white-space:nowrap}
   .period-nav .pn-today:active{background:var(--soft)}
+  /* 诊断页顶部吸顶：日周月 + 时间选择 */
+  .diag-sticky{
+    position:sticky;top:0;z-index:20;
+    background:var(--bg);
+    padding:10px 0 10px;
+    margin:-4px 0 0;
+    border-bottom:1px solid transparent;
+  }
+  .diag-sticky.stuck{border-bottom-color:var(--line);box-shadow:0 6px 14px rgba(35,48,63,.05)}
   .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
   .stat{background:var(--soft);border-radius:14px;padding:12px 8px;text-align:center}
   .stat .v{font-size:20px;font-weight:800;color:var(--primary-d)}
@@ -126,6 +124,14 @@
   .photo-thumb img{width:100%;height:100%;object-fit:cover;cursor:pointer}
   .photo-thumb .rm{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;font-size:13px;line-height:22px;cursor:pointer;padding:0}
   /* 错题本 */
+  .book-filter{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .book-filter .bf-lab{font-size:14px;font-weight:700;color:var(--ink)}
+  .book-filter select{
+    flex:1;min-width:160px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;
+    font-size:15px;background:#fff;color:var(--ink);-webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%237C8AA0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 5l4 4 4-4'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;padding-right:34px
+  }
   .list-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:4px}
   .tool-btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer}
   .tool-btn.warn{border-color:#FFD0D0;color:var(--warn);background:#FFF5F5}
@@ -178,14 +184,6 @@
   <div class="store">数据存本机</div>
 </header>
 
-<div class="today wrap" id="todayBar" style="max-width:760px">
-  <div>
-    <div class="t-h">今日速览</div>
-    <div class="t-b" id="todayText">今天还没录入哦</div>
-  </div>
-  <button class="t-go" id="todayGo">去记一笔</button>
-</div>
-
 <nav class="tabs">
   <button data-tab="diag" class="active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>诊断
@@ -204,16 +202,18 @@
 <main class="wrap">
   <!-- 诊断 -->
   <section id="tab-diag">
-    <div class="seg" id="seg">
-      <button data-p="day" class="active">日</button>
-      <button data-p="week">周</button>
-      <button data-p="month">月</button>
-    </div>
-    <div class="period-nav">
-      <button id="periodPrev" class="pn-btn" aria-label="上一个">‹</button>
-      <span class="pn-label" id="periodLabel"></span>
-      <button id="periodNext" class="pn-btn" aria-label="下一个">›</button>
-      <button id="periodToday" class="pn-today">回到今/当月</button>
+    <div class="diag-sticky" id="diagSticky">
+      <div class="seg" id="seg">
+        <button data-p="day" class="active">日</button>
+        <button data-p="week">周</button>
+        <button data-p="month">月</button>
+      </div>
+      <div class="period-nav">
+        <button id="periodPrev" class="pn-btn" aria-label="上一个">‹</button>
+        <span class="pn-label" id="periodLabel"></span>
+        <button id="periodNext" class="pn-btn" aria-label="下一个">›</button>
+        <button id="periodToday" class="pn-today">回到今/当月</button>
+      </div>
     </div>
     <div class="card" style="margin-top:14px">
       <h3><span class="bar"></span><span id="scopeTitle">今日诊断</span></h3>
@@ -279,6 +279,10 @@
   <section id="tab-book" hidden>
     <div class="card">
       <h3><span class="bar"></span>按知识点查看错题图片</h3>
+      <div class="book-filter">
+        <span class="bf-lab">知识点</span>
+        <select id="bookFilter"><option value="">全部</option></select>
+      </div>
       <div id="bookList"></div>
     </div>
   </section>
@@ -318,7 +322,7 @@
   };
   var PRESET = { reasons:['没看题目','题目看不懂','计算粗心','基础概念不清晰','方法不熟练'] };
   var TAGS = ['待复习','已复习','已攻克'];
-  var state = { records:[], period:'day', cursor:new Date(), hier:{}, sel:{type:'', kps:[], reasons:[], photos:[]} };
+  var state = { records:[], period:'day', cursor:new Date(), hier:{}, sel:{type:'', kps:[], reasons:[], photos:[]}, bookFilter:'' };
 
   /* ---------- 工具 ---------- */
   function pad(n){return n<10?'0'+n:''+n;}
@@ -512,14 +516,6 @@
   }
 
   /* ---------- 渲染 ---------- */
-  function renderToday(){
-    var t = ymd(new Date());
-    var recs = state.records.filter(function(r){return r.测试时间===t;});
-    var n=recs.length, pending=recs.filter(function(r){return r.tag==='待复习';}).length;
-    var el = document.getElementById('todayText');
-    if(n===0) el.textContent='今天还没录入哦，记一笔吧～';
-    else el.innerHTML='今天已记 <b>'+n+'</b> 道错题 · 待复习 <b>'+pending+'</b> 道';
-  }
   function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||'')+'">'+v+'</div><div class="l">'+l+'</div></div>';}
   function renderDiagnostics(){
     var sc = periodScope(state.period, state.cursor);
@@ -581,7 +577,10 @@
       if(!kps.length) kps=['未分类'];
       kps.forEach(function(k){ (groups[k]=groups[k]||[]).push(r); });
     });
-    var keys=Object.keys(groups).sort();
+    // 知识点筛选
+    var filter=state.bookFilter;
+    var keys=Object.keys(groups).sort().filter(function(k){ return !filter || k===filter; });
+    if(filter && keys.length===0){ box.innerHTML='<div class="empty">该知识点暂无错题</div>'; return; }
     var byTime=function(a,b){ return a.测试时间<b.测试时间?1:(a.测试时间>b.测试时间?-1:0); };
     box.innerHTML = keys.map(function(k){
       var items=groups[k].slice().sort(byTime);
@@ -602,6 +601,18 @@
       var del=card.querySelector('.del');
       if(del) del.addEventListener('click',function(){ if(confirm('确定删除这条错题？')) removeRecord(id); });
     });
+  }
+  function populateBookFilter(){
+    var sel=document.getElementById('bookFilter');
+    var set={};
+    state.records.forEach(function(r){
+      (r.知识点||'未分类').split('、').filter(Boolean).forEach(function(k){ set[k]=true; });
+    });
+    var opts=['<option value="">全部</option>'].concat(
+      Object.keys(set).sort().map(function(k){ return '<option value="'+k+'">'+k+'</option>'; })
+    );
+    sel.innerHTML=opts.join('');
+    sel.value=state.bookFilter||'';
   }
   function errCard(r){
     var photos=(r.photos||[]).map(function(p){
@@ -770,8 +781,8 @@
   /* ---------- 刷新 ---------- */
   function refreshAll(){
     try { state.records = loadAll(); } catch(e){ state.records = state.records || []; }
-    renderToday(); renderDiagnostics(); renderList();
-    if(!document.getElementById('tab-book').hidden) renderBook();
+    renderDiagnostics(); renderList();
+    if(!document.getElementById('tab-book').hidden){ populateBookFilter(); renderBook(); }
     return Promise.resolve();
   }
 
@@ -783,13 +794,9 @@
         Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.classList.remove('active');});
         b.classList.add('active');
         ['diag','add','book','list'].forEach(function(k){ document.getElementById('tab-'+k).hidden = (k!==tab); });
-        document.getElementById('todayBar').hidden = (tab!=='diag');
         if(tab==='diag') renderDiagnostics();
-        if(tab==='book') renderBook();
+        if(tab==='book'){ populateBookFilter(); renderBook(); }
       });
-    });
-    document.getElementById('todayGo').addEventListener('click',function(){
-      document.querySelector('nav.tabs button[data-tab="add"]').click();
     });
   }
   function bindSeg(){
@@ -814,6 +821,24 @@
     document.getElementById('periodPrev').addEventListener('click',function(){ shiftCursor(state.period,-1); renderDiagnostics(); });
     document.getElementById('periodNext').addEventListener('click',function(){ shiftCursor(state.period,1); renderDiagnostics(); });
     document.getElementById('periodToday').addEventListener('click',function(){ state.cursor=new Date(); renderDiagnostics(); });
+  }
+  function bindBookFilter(){
+    var sel=document.getElementById('bookFilter');
+    sel.addEventListener('change',function(){
+      state.bookFilter=sel.value;
+      renderBook();
+    });
+  }
+  /* 诊断页吸顶：滚动时给吸顶条加阴影 */
+  function bindSticky(){
+    var el=document.getElementById('diagSticky');
+    if(!el) return;
+    var onScroll=function(){
+      if(el.getBoundingClientRect().top<=0) el.classList.add('stuck');
+      else el.classList.remove('stuck');
+    };
+    window.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
   }
   function bindForm(){
     state.hier = loadHier();
@@ -874,7 +899,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v6';
+  var SW_VER = 'v7';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
@@ -887,7 +912,7 @@
   }
 
 document.addEventListener('DOMContentLoaded',function(){
-  bindTabs(); bindSeg(); bindPeriodNav(); bindForm(); bindData();
+  bindTabs(); bindSeg(); bindPeriodNav(); bindBookFilter(); bindSticky(); bindForm(); bindData();
   registerSW();
   refreshAll();
 });
