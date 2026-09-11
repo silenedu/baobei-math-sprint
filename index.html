@@ -58,6 +58,13 @@
   .seg{display:flex;background:var(--soft);border-radius:999px;padding:4px;max-width:340px;margin:0 auto}
   .seg button{flex:1;border:none;background:none;padding:9px 0;border-radius:999px;font-weight:700;color:var(--sub);cursor:pointer;font-size:15px}
   .seg button.active{background:#fff;color:var(--primary-d);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  /* 周期时间切换 */
+  .period-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto 0;max-width:340px}
+  .period-nav .pn-btn{width:38px;height:38px;border:1px solid var(--line);background:#fff;border-radius:50%;font-size:20px;font-weight:800;color:var(--primary-d);cursor:pointer;line-height:1}
+  .period-nav .pn-btn:active{background:var(--soft)}
+  .period-nav .pn-label{font-size:14px;font-weight:700;color:var(--ink);min-width:120px;text-align:center}
+  .period-nav .pn-today{border:1px solid var(--line);background:#fff;color:var(--sub);border-radius:999px;padding:7px 12px;font-size:12px;cursor:pointer;white-space:nowrap}
+  .period-nav .pn-today:active{background:var(--soft)}
   .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
   .stat{background:var(--soft);border-radius:14px;padding:12px 8px;text-align:center}
   .stat .v{font-size:20px;font-weight:800;color:var(--primary-d)}
@@ -171,7 +178,7 @@
   <div class="store">数据存本机</div>
 </header>
 
-<div class="today wrap" style="max-width:760px">
+<div class="today wrap" id="todayBar" style="max-width:760px">
   <div>
     <div class="t-h">今日速览</div>
     <div class="t-b" id="todayText">今天还没录入哦</div>
@@ -201,6 +208,12 @@
       <button data-p="day" class="active">日</button>
       <button data-p="week">周</button>
       <button data-p="month">月</button>
+    </div>
+    <div class="period-nav">
+      <button id="periodPrev" class="pn-btn" aria-label="上一个">‹</button>
+      <span class="pn-label" id="periodLabel"></span>
+      <button id="periodNext" class="pn-btn" aria-label="下一个">›</button>
+      <button id="periodToday" class="pn-today">回到今/当月</button>
     </div>
     <div class="card" style="margin-top:14px">
       <h3><span class="bar"></span><span id="scopeTitle">今日诊断</span></h3>
@@ -305,7 +318,7 @@
   };
   var PRESET = { reasons:['没看题目','题目看不懂','计算粗心','基础概念不清晰','方法不熟练'] };
   var TAGS = ['待复习','已复习','已攻克'];
-  var state = { records:[], period:'day', hier:{}, sel:{type:'', kps:[], reasons:[], photos:[]} };
+  var state = { records:[], period:'day', cursor:new Date(), hier:{}, sel:{type:'', kps:[], reasons:[], photos:[]} };
 
   /* ---------- 工具 ---------- */
   function pad(n){return n<10?'0'+n:''+n;}
@@ -419,15 +432,15 @@
   }
 
   /* ---------- 周期范围 ---------- */
-  function periodScope(p){
-    var now = new Date();
-    if(p==='day') return {start:ymd(now), end:ymd(now), tStart:addDays(now,-6), tEnd:now, title:'今日诊断'};
+  function periodScope(p, cursor){
+    cursor = cursor || new Date();
+    if(p==='day') return {start:ymd(cursor), end:ymd(cursor), tStart:addDays(cursor,-6), tEnd:cursor, title:'当日诊断', label:ymd(cursor).replace(/-/g,'/')};
     if(p==='week'){
-      var dow=(now.getDay()+6)%7, mon=addDays(now,-dow), sun=addDays(mon,6);
-      return {start:ymd(mon), end:ymd(sun), tStart:mon, tEnd:sun, title:'本周诊断'};
+      var dow=(cursor.getDay()+6)%7, mon=addDays(cursor,-dow), sun=addDays(mon,6);
+      return {start:ymd(mon), end:ymd(sun), tStart:mon, tEnd:sun, title:'本周诊断', label:ymd(mon).slice(5).replace('-','/')+' ~ '+ymd(sun).slice(5).replace('-','/')};
     }
-    var first=new Date(now.getFullYear(),now.getMonth(),1), last=new Date(now.getFullYear(),now.getMonth()+1,0);
-    return {start:ymd(first), end:ymd(last), tStart:first, tEnd:now, title:'本月诊断'};
+    var first=new Date(cursor.getFullYear(),cursor.getMonth(),1), last=new Date(cursor.getFullYear(),cursor.getMonth()+1,0);
+    return {start:ymd(first), end:ymd(last), tStart:first, tEnd:last, title:'本月诊断', label:cursor.getFullYear()+'年'+(cursor.getMonth()+1)+'月'};
   }
 
   /* ---------- 统计 ---------- */
@@ -509,8 +522,10 @@
   }
   function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||'')+'">'+v+'</div><div class="l">'+l+'</div></div>';}
   function renderDiagnostics(){
-    var sc = periodScope(state.period);
+    var sc = periodScope(state.period, state.cursor);
     document.getElementById('scopeTitle').textContent = sc.title;
+    document.getElementById('periodLabel').textContent = sc.label;
+    document.getElementById('periodToday').textContent = '回到'+(state.period==='day'?'今天':state.period==='week'?'本周':'本月');
     var recs = state.records.filter(function(r){return inScope(r,sc);});
     var n=recs.length;
     var c0=recs.filter(function(r){return r.tag==='待复习';}).length;
@@ -567,8 +582,9 @@
       kps.forEach(function(k){ (groups[k]=groups[k]||[]).push(r); });
     });
     var keys=Object.keys(groups).sort();
+    var byTime=function(a,b){ return a.测试时间<b.测试时间?1:(a.测试时间>b.测试时间?-1:0); };
     box.innerHTML = keys.map(function(k){
-      var items=groups[k];
+      var items=groups[k].slice().sort(byTime);
       return '<div class="kp-group"><h4>'+k+' <span class="cnt">'+items.length+' 题</span></h4>'+
         items.map(function(r){ return errCard(r); }).join('')+'</div>';
     }).join('');
@@ -767,6 +783,8 @@
         Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.classList.remove('active');});
         b.classList.add('active');
         ['diag','add','book','list'].forEach(function(k){ document.getElementById('tab-'+k).hidden = (k!==tab); });
+        document.getElementById('todayBar').hidden = (tab!=='diag');
+        if(tab==='diag') renderDiagnostics();
         if(tab==='book') renderBook();
       });
     });
@@ -780,9 +798,22 @@
         Array.prototype.forEach.call(document.querySelectorAll('#seg button'),function(x){x.classList.remove('active');});
         b.classList.add('active');
         state.period=b.getAttribute('data-p');
+        state.cursor=new Date();
         renderDiagnostics();
       });
     });
+  }
+  function shiftCursor(unit, delta){
+    var c=new Date(state.cursor);
+    if(unit==='day') c.setDate(c.getDate()+delta);
+    else if(unit==='week') c.setDate(c.getDate()+delta*7);
+    else c.setMonth(c.getMonth()+delta);
+    state.cursor=c;
+  }
+  function bindPeriodNav(){
+    document.getElementById('periodPrev').addEventListener('click',function(){ shiftCursor(state.period,-1); renderDiagnostics(); });
+    document.getElementById('periodNext').addEventListener('click',function(){ shiftCursor(state.period,1); renderDiagnostics(); });
+    document.getElementById('periodToday').addEventListener('click',function(){ state.cursor=new Date(); renderDiagnostics(); });
   }
   function bindForm(){
     state.hier = loadHier();
@@ -843,7 +874,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v4';
+  var SW_VER = 'v5';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
@@ -855,11 +886,11 @@
     navigator.serviceWorker.addEventListener('controllerchange',function(){ window.location.reload(); });
   }
 
-  document.addEventListener('DOMContentLoaded',function(){
-    bindTabs(); bindSeg(); bindForm(); bindData();
-    registerSW();
-    refreshAll();
-  });
+document.addEventListener('DOMContentLoaded',function(){
+  bindTabs(); bindSeg(); bindPeriodNav(); bindForm(); bindData();
+  registerSW();
+  refreshAll();
+});
 })();
 </script>
 </body>
