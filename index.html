@@ -481,19 +481,31 @@
     if(!segs.length) return '<span style="color:#9AA7B8">暂无数据</span>';
     return segs.map(function(s){return '<span><i style="background:'+s.color+'"></i>'+s.label+' · '+s.value+'</span>';}).join('');
   }
+  var _mc=null;
+  function textW(str,px){
+    if(!_mc){ try{ _mc=document.createElement('canvas').getContext('2d'); }catch(e){ _mc=null; } }
+    if(!_mc) return str.length*(px||13);
+    _mc.font=(px||13)+'px -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif';
+    return _mc.measureText(str).width;
+  }
   function hbar(segs){
     if(!segs.length) return '<div style="color:#9AA7B8;font-size:13px">暂无数据</div>';
-    var max=Math.max.apply(null,segs.map(function(s){return s.value;}).concat([1]));
-    // 每项两行：上行「名称 …… 数量」，下行整条进度条，避免长文字与条形重叠
-    var W=320, rowH=22, labelH=20, gap=14, h=segs.length*(labelH+rowH+gap)-gap;
-    var bars='';
+    var total=segs.reduce(function(a,s){return a+s.value;},0)||1;
+    // 紧凑单行：名称（左）· 短条（中）· 数量（右）；条长=占比；标签列宽按最长名称动态计算，避免重叠
+    var W=320, fs=13, rowH=14, gap=15, valW=20, gapL=10;
+    var maxLabelW=0;
+    segs.forEach(function(s){ maxLabelW=Math.max(maxLabelW, textW(s.label,fs)); });
+    var lw=Math.min(Math.ceil(maxLabelW), Math.round(W*0.44));
+    var x0=lw+gapL, track=Math.max(50, W-x0-valW);
+    var h=segs.length*(rowH+gap)-gap, bars='';
     segs.forEach(function(s,i){
-      var y=i*(labelH+rowH+gap);
-      var bw=Math.max(8,Math.round(s.value/max*W));
-      bars+='<text x="0" y="'+(y+13)+'" font-size="13" fill="#23303F">'+s.label+'</text>';
-      bars+='<text x="'+W+'" y="'+(y+13)+'" text-anchor="end" font-size="13" font-weight="700" fill="#7C8AA0">'+s.value+'</text>';
-      bars+='<rect x="0" y="'+(y+labelH)+'" width="'+W+'" height="'+rowH+'" rx="8" fill="#EEF1F6"/>';
-      bars+='<rect x="0" y="'+(y+labelH)+'" width="'+bw+'" height="'+rowH+'" rx="8" fill="'+s.color+'"/>';
+      var y=i*(rowH+gap), cy=y+rowH/2;
+      var bw=Math.max(6,Math.round(s.value/total*track));
+      var squeeze=(textW(s.label,fs)>lw)?' textLength="'+lw+'" lengthAdjust="spacingAndGlyphs"':'';
+      bars+='<text x="0" y="'+(cy+4.5)+'" font-size="'+fs+'" fill="#23303F"'+squeeze+'>'+s.label+'</text>';
+      bars+='<rect x="'+x0+'" y="'+y+'" width="'+track+'" height="'+rowH+'" rx="'+(rowH/2)+'" fill="#EEF1F6"/>';
+      bars+='<rect x="'+x0+'" y="'+y+'" width="'+bw+'" height="'+rowH+'" rx="'+(rowH/2)+'" fill="'+s.color+'"/>';
+      bars+='<text x="'+W+'" y="'+(cy+4.5)+'" text-anchor="end" font-size="'+fs+'" font-weight="700" fill="#7C8AA0">'+s.value+'</text>';
     });
     return '<svg class="chart" viewBox="0 0 '+W+' '+h+'" style="max-width:420px">'+bars+'</svg>';
   }
@@ -905,7 +917,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v11';
+  var SW_VER = 'v12';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
