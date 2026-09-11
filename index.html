@@ -12,6 +12,7 @@
     --bg:#F4F7FB; --card:#FFFFFF; --ink:#23303F; --sub:#7C8AA0;
     --primary:#4D96FF; --primary-d:#2F7BE8; --accent:#FF9F45; --line:#E8EEF6;
     --ok:#37C997; --warn:#FF6B6B; --soft:#EEF4FF;
+    --t0:#FF9F45; --t1:#4D96FF; --t2:#37C997;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
@@ -28,7 +29,6 @@
   .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px}
   .brand svg{width:30px;height:30px}
   .store{font-size:12px;color:var(--sub);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
-  /* 今日速览 置顶 */
   .today{
     max-width:760px;margin:4px auto 0;background:linear-gradient(120deg,#4D96FF,#6FB1FF);
     color:#fff;border-radius:18px;padding:14px 16px;display:flex;align-items:center;
@@ -40,7 +40,6 @@
     background:#fff;color:var(--primary-d);border:none;border-radius:999px;
     padding:9px 16px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap
   }
-  /* tabs */
   nav.tabs{
     position:fixed;left:0;right:0;bottom:0;z-index:30;
     display:flex;background:#fff;border-top:1px solid var(--line);
@@ -61,9 +60,9 @@
   .seg button.active{background:#fff;color:var(--primary-d);box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
   .stat{background:var(--soft);border-radius:14px;padding:12px 8px;text-align:center}
-  .stat .v{font-size:22px;font-weight:800;color:var(--primary-d)}
-  .stat .v.ok{color:var(--ok)}
-  .stat .v.warn{color:var(--warn)}
+  .stat .v{font-size:20px;font-weight:800;color:var(--primary-d)}
+  .stat .v.ok{color:var(--ok)} .stat .v.warn{color:var(--warn)}
+  .stat .v.t0{color:var(--t0)} .stat .v.t1{color:var(--t1)} .stat .v.t2{color:var(--t2)}
   .stat .l{font-size:12px;color:var(--sub);margin-top:2px}
   .legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;font-size:13px;color:var(--ink)}
   .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -72,10 +71,10 @@
   .chart-flex .donut-box{flex:1;min-width:180px;text-align:center}
   .chart-flex .legend{flex:1;min-width:200px}
   svg.chart{width:100%;height:auto;display:block}
-  /* form */
   label.fld{display:block;margin-bottom:16px}
   label.fld .lab{font-size:14px;font-weight:700;margin-bottom:7px;display:block}
   .req{color:var(--warn)}
+  .hint{font-size:12px;color:var(--sub);margin:-4px 0 8px}
   input[type=date],input[type=number]{
     width:100%;padding:12px 12px;border:1px solid var(--line);border-radius:12px;
     font-size:16px;background:#fff;color:var(--ink)
@@ -110,15 +109,39 @@
     padding:11px 18px;border-radius:12px;font-size:14px;z-index:60;opacity:0;transition:.25s;pointer-events:none
   }
   .toast.show{opacity:1}
-  /* list + data tools */
+  /* 照片上传 */
+  .upload-btn{
+    display:inline-flex;align-items:center;gap:6px;border:1px dashed var(--primary);color:var(--primary-d);
+    background:#fff;border-radius:12px;padding:12px 16px;cursor:pointer;font-weight:700;font-size:14px
+  }
+  .photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .photo-thumb{position:relative;width:84px;height:84px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#f0f3f8}
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;cursor:pointer}
+  .photo-thumb .rm{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;font-size:13px;line-height:22px;cursor:pointer;padding:0}
+  /* 错题本 */
   .list-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:4px}
   .tool-btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer}
   .tool-btn.warn{border-color:#FFD0D0;color:var(--warn);background:#FFF5F5}
+  .kp-group{margin-top:14px}
+  .kp-group h4{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .kp-group h4 .cnt{font-size:12px;color:var(--sub);font-weight:600}
+  .errcard{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;margin-bottom:10px}
+  .errcard .ec-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+  .errcard .ec-date{font-weight:800}
+  .errcard .ec-type{font-size:12px;color:#fff;background:var(--primary);border-radius:999px;padding:3px 10px}
+  .errcard .ec-sub{font-size:13px;color:var(--sub);margin:6px 0}
+  .errcard .ec-photos{display:flex;flex-wrap:wrap;gap:6px}
+  .errcard .ec-photos img{width:72px;height:72px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--line)}
+  .tag-btns{display:flex;gap:6px;margin-top:10px}
+  .tag-btn{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 0;font-size:13px;cursor:pointer;font-weight:700;color:var(--sub)}
+  .tag-btn.on.t0{background:var(--t0);border-color:var(--t0);color:#fff}
+  .tag-btn.on.t1{background:var(--t1);border-color:var(--t1);color:#fff}
+  .tag-btn.on.t2{background:var(--t2);border-color:var(--t2);color:#fff}
+  .del{border:none;background:#FFF0F0;color:var(--warn);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
   .rec{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:12px;background:#fff}
   .rec .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
   .rec .date{font-weight:800}
   .rec .type{font-size:12px;color:#fff;background:var(--primary);border-radius:999px;padding:3px 10px}
-  .rec .type.zh{background:var(--accent)}
   .rec .meta{font-size:13px;color:var(--sub);margin:6px 0}
   .rec .acc{color:var(--ok);font-weight:700}
   .rec .acc.low{color:var(--warn)}
@@ -126,8 +149,11 @@
   .tag{font-size:12px;background:var(--soft);color:var(--primary-d);border-radius:8px;padding:3px 9px}
   .tag.r{background:#FFF0F0;color:var(--warn)}
   .tag.k{background:#EAFaf3;color:var(--ok)}
-  .del{margin-left:auto;border:none;background:#FFF0F0;color:var(--warn);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
   .empty{text-align:center;color:var(--sub);padding:40px 0;font-size:14px}
+  /* 图片放大 */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:80;display:flex;align-items:center;justify-content:center}
+  .lightbox img{max-width:94%;max-height:88%;border-radius:10px}
+  .lightbox .lb-close{position:absolute;top:18px;right:22px;width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:#fff;font-size:22px;cursor:pointer}
   @media(max-width:560px){
     .summary{grid-template-columns:repeat(2,1fr)}
     .brand{font-size:17px}
@@ -157,6 +183,9 @@
   </button>
   <button data-tab="add">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>录入
+  </button>
+  <button data-tab="book">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h11a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3zM4 5v0M4 5a3 3 0 0 1 3-3h11"/></svg>错题本
   </button>
   <button data-tab="list">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>记录
@@ -199,7 +228,7 @@
   <!-- 录入 -->
   <section id="tab-add" hidden>
     <div class="card">
-      <h3><span class="bar"></span>录入一次测试</h3>
+      <h3><span class="bar"></span>录入一道错题</h3>
       <form id="form" autocomplete="off">
         <label class="fld"><span class="lab">测试时间 <span class="req">*</span></span>
           <input type="date" id="f_date" required></label>
@@ -208,22 +237,34 @@
             <label><input type="radio" name="ftype" value="专项训练" checked><span>专项训练</span></label>
             <label><input type="radio" name="ftype" value="综合训练"><span>综合训练</span></label>
           </div></label>
-        <label class="fld"><span class="lab">题目总数 <span class="req">*</span></span>
-          <input type="number" id="f_total" min="1" inputmode="numeric" placeholder="例如 20" required></label>
-        <label class="fld"><span class="lab">错题数 <span class="req">*</span></span>
-          <input type="number" id="f_wrong" min="0" inputmode="numeric" placeholder="例如 5" required></label>
-        <label class="fld"><span class="lab">错题类型（可多选 / 可手填）</span>
+        <label class="fld"><span class="lab">错题类型（一级）<span class="req">*</span></span>
           <div class="chips" id="chipsType"></div>
-          <div class="addrow"><input id="addType" placeholder="手填新类型，如：时间推理"><button type="button" id="btnAddType">添加</button></div></label>
-        <label class="fld"><span class="lab">知识点（可多选 / 可手填）</span>
+          <div class="addrow"><input id="addType" placeholder="手填新类型，如：时间推理"><button type="button" id="btnAddType">添加</button></div>
+          <div class="hint">知识点是其二级选项，选好错题类型后在下方面选</div></label>
+        <label class="fld"><span class="lab">知识点（二级，可多选 / 可手填）</span>
           <div class="chips" id="chipsKp"></div>
           <div class="addrow"><input id="addKp" placeholder="手填新知识点，如：找规律"><button type="button" id="btnAddKp">添加</button></div></label>
         <label class="fld"><span class="lab">出错原因（可多选 / 可手填）</span>
           <div class="chips" id="chipsReason"></div>
           <div class="addrow"><input id="addReason" placeholder="手填新原因，如：读题太快"><button type="button" id="btnAddReason">添加</button></div></label>
+        <label class="fld"><span class="lab">拍照上传题目（可多张）</span>
+          <label class="upload-btn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            拍照 / 选图
+            <input type="file" id="f_photos" accept="image/*" capture="environment" multiple hidden>
+          </label>
+          <div class="photos" id="photoBox"></div></label>
         <div class="form-err" id="formErr"></div>
-        <button type="submit" class="submit" id="submitBtn">保存这次测试</button>
+        <button type="submit" class="submit" id="submitBtn">保存这道错题</button>
       </form>
+    </div>
+  </section>
+
+  <!-- 错题本 -->
+  <section id="tab-book" hidden>
+    <div class="card">
+      <h3><span class="bar"></span>按知识点查看错题图片</h3>
+      <div id="bookList"></div>
     </div>
   </section>
 
@@ -239,40 +280,50 @@
   </section>
 </main>
 
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lb-close" id="lbClose">×</button>
+  <img id="lbImg" alt="题目大图">
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 (function(){
   "use strict";
-  var LS_KEY = 'mathsprint_records_v1';
-  var SEED_FLAG = 'mathsprint_seeded_v1';
+  var LS_KEY = 'mathsprint_records_v2';
+  var HIER_KEY = 'mathsprint_hier_v1';
+  var SEED_FLAG = 'mathsprint_seeded_v2';
   var PALETTE = ['#4D96FF','#FF9F45','#37C997','#FF6B6B','#A66CFF','#4DCFA8','#FFB84D','#6BCBFF','#FF7FB5','#9C9CFF'];
-  var PRESET = {
-    types:['数感','空间','逻辑推理','应用题'],
-    kps:['计算','巧算','三视图','等量代换','图形比大小','枚举','统计图'],
-    reasons:['没看题目','题目看不懂','计算粗心','基础概念不清晰','方法不熟练']
+  var DEFAULT_HIER = {
+    '数感':['计算','巧算','图形比大小'],
+    '逻辑推理':['枚举','找规律','等量代换'],
+    '图形空间':['三视图','图形认知','对称'],
+    '综合应用题':['统计图','加减法应用','乘除应用']
   };
-  var state = { records:[], period:'day', sel:{types:[], kps:[], reasons:[]} };
+  var PRESET = { reasons:['没看题目','题目看不懂','计算粗心','基础概念不清晰','方法不熟练'] };
+  var TAGS = ['待复习','已复习','已攻克'];
+  var state = { records:[], period:'day', hier:{}, sel:{type:'', kps:[], reasons:[], photos:[]} };
 
   /* ---------- 工具 ---------- */
   function pad(n){return n<10?'0'+n:''+n;}
   function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-  function datePart(s){return (s||'').slice(0,10);}
   function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
   function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
   function loadLocal(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch(e){return [];}}
-  function saveLocal(a){try{localStorage.setItem(LS_KEY,JSON.stringify(a));}catch(e){}}
+  function saveLocal(a){try{localStorage.setItem(LS_KEY,JSON.stringify(a));}catch(e){ toast('保存空间不足，请导出备份并清理'); }}
 
-  /* 表单本地缓存：刷新不丢录入，保存成功后清除 */
-  var FORM_KEY='mathsprint_form', _fcTimer=null;
+  /* 层级 错题类型→知识点 持久化 */
+  function loadHier(){ try{ var h=JSON.parse(localStorage.getItem(HIER_KEY)); if(h&&typeof h==='object') return h; }catch(e){} return JSON.parse(JSON.stringify(DEFAULT_HIER)); }
+  function saveHier(){ try{ localStorage.setItem(HIER_KEY, JSON.stringify(state.hier)); }catch(e){} }
+
+  /* 表单本地缓存 */
+  var FORM_KEY='mathsprint_form_v2', _fcTimer=null;
   function doSaveForm(){
     try{
       localStorage.setItem(FORM_KEY, JSON.stringify({
         date:document.getElementById('f_date').value,
         type:(document.querySelector('input[name=ftype]:checked')||{}).value||'',
-        total:document.getElementById('f_total').value,
-        wrong:document.getElementById('f_wrong').value,
-        types:state.sel.types, kps:state.sel.kps, reasons:state.sel.reasons
+        typeSel:state.sel.type, kps:state.sel.kps, reasons:state.sel.reasons
       }));
     }catch(e){}
   }
@@ -283,12 +334,9 @@
       var s=JSON.parse(localStorage.getItem(FORM_KEY)||'null'); if(!s) return;
       if(s.date) document.getElementById('f_date').value=s.date;
       if(s.type){ var rb=document.querySelector('input[name=ftype][value="'+s.type+'"]'); if(rb) rb.checked=true; }
-      if(s.total) document.getElementById('f_total').value=s.total;
-      if(s.wrong) document.getElementById('f_wrong').value=s.wrong;
-      if(s.types) state.sel.types=s.types;
+      if(s.typeSel) state.sel.type=s.typeSel;
       if(s.kps) state.sel.kps=s.kps;
       if(s.reasons) state.sel.reasons=s.reasons;
-      renderChips('types'); renderChips('kps'); renderChips('reasons');
     }catch(e){}
   }
 
@@ -296,30 +344,38 @@
   function seedIfEmpty(){
     if(localStorage.getItem(SEED_FLAG)) return;
     var seed=[
-      {_id:'seed1',测试时间:'2026-09-03',习题类型:'专项训练',题目总数:20,错题数:5,错题类型:'数感、逻辑推理',知识点:'计算、巧算',出错原因:'计算粗心、方法不熟练'},
-      {_id:'seed2',测试时间:'2026-09-06',习题类型:'综合训练',题目总数:30,错题数:8,错题类型:'空间、应用题',知识点:'三视图、等量代换',出错原因:'题目看不懂、基础概念不清晰'},
-      {_id:'seed3',测试时间:'2026-09-09',习题类型:'专项训练',题目总数:25,错题数:3,错题类型:'逻辑推理',知识点:'枚举',出错原因:'没看题目'},
-      {_id:'seed4',测试时间:'2026-09-10',习题类型:'综合训练',题目总数:20,错题数:6,错题类型:'数感、空间',知识点:'图形比大小、统计图',出错原因:'计算粗心、基础概念不清晰'},
-      {_id:'seed5',测试时间:'2026-09-11',习题类型:'专项训练',题目总数:24,错题数:4,错题类型:'数感、逻辑推理',知识点:'计算、巧算',出错原因:'计算粗心'}
+      {_id:'seed1',测试时间:'2026-09-03',习题类型:'专项训练',错题类型:'数感',知识点:'计算、巧算',出错原因:'计算粗心、方法不熟练',tag:'已攻克',photos:[]},
+      {_id:'seed2',测试时间:'2026-09-06',习题类型:'综合训练',错题类型:'图形空间',知识点:'三视图',出错原因:'题目看不懂',tag:'已复习',photos:[]},
+      {_id:'seed3',测试时间:'2026-09-09',习题类型:'专项训练',错题类型:'逻辑推理',知识点:'枚举',出错原因:'没看题目',tag:'待复习',photos:[]},
+      {_id:'seed4',测试时间:'2026-09-10',习题类型:'综合训练',错题类型:'数感',知识点:'图形比大小',出错原因:'计算粗心',tag:'待复习',photos:[]},
+      {_id:'seed5',测试时间:'2026-09-11',习题类型:'专项训练',错题类型:'逻辑推理',知识点:'等量代换',出错原因:'基础概念不清晰',tag:'待复习',photos:[]}
     ];
     saveLocal(seed); localStorage.setItem(SEED_FLAG,'1');
   }
 
   /* ---------- 数据层（纯本地） ---------- */
-  function loadAll(){ try{ seedIfEmpty(); }catch(e){} return loadLocal(); }
+  function loadAll(){ try{ seedIfEmpty(); }catch(e){} state.hier=loadHier(); return loadLocal(); }
   function addRecord(flat){
-    var rec = Object.assign({_id:'rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}, flat);
+    var rec = Object.assign({_id:'rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), tag:'待复习', photos:[]}, flat);
     var arr = loadLocal(); arr.push(rec); saveLocal(arr);
     return refreshAll();
+  }
+  function updateRecord(id, patch){
+    var arr = loadLocal();
+    arr.forEach(function(r){ if(r._id===id) Object.assign(r, patch); });
+    saveLocal(arr); return refreshAll();
   }
   function removeRecord(id){
     var a = loadLocal().filter(function(r){return r._id!==id;}); saveLocal(a);
     return refreshAll();
   }
 
-  /* ---------- 备份 导出/导入 ---------- */
+  /* ---------- 备份 导出/导入（含照片） ---------- */
   function exportData(){
-    var data = loadLocal();
+    var data = loadLocal().map(function(r){
+      var c = JSON.parse(JSON.stringify(r));
+      return c;
+    });
     var blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -340,6 +396,8 @@
         incoming.forEach(function(r){
           if(!r || !r.测试时间) return;
           if(!r._id) r._id = 'rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+          if(!Array.isArray(r.photos)) r.photos=[];
+          if(!r.tag) r.tag='待复习';
           map[r._id] = r; added++;
         });
         saveLocal(Object.keys(map).map(function(k){return map[k];}));
@@ -371,7 +429,6 @@
 
   /* ---------- 统计 ---------- */
   function inScope(r, sc){var d=r.测试时间;return d>=sc.start && d<=sc.end;}
-  function sum(arr,k){return arr.reduce(function(a,r){return a+ (r[k]||0);},0);}
   function tally(field, recs){
     var m={};
     recs.forEach(function(r){
@@ -442,83 +499,182 @@
   function renderToday(){
     var t = ymd(new Date());
     var recs = state.records.filter(function(r){return r.测试时间===t;});
-    var n=recs.length, wrong=sum(recs,'错题数'), total=sum(recs,'题目总数');
-    var acc = total? Math.round((total-wrong)/total*100):0;
+    var n=recs.length, pending=recs.filter(function(r){return r.tag==='待复习';}).length;
     var el = document.getElementById('todayText');
     if(n===0) el.textContent='今天还没录入哦，记一笔吧～';
-    else el.innerHTML='今天已完成 <b>'+n+'</b> 次测试 · 错题 <b>'+wrong+'</b> 道 · 正确率 <b>'+acc+'%</b>';
+    else el.innerHTML='今天已记 <b>'+n+'</b> 道错题 · 待复习 <b>'+pending+'</b> 道';
   }
+  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||'')+'">'+v+'</div><div class="l">'+l+'</div></div>';}
   function renderDiagnostics(){
     var sc = periodScope(state.period);
     document.getElementById('scopeTitle').textContent = sc.title;
     var recs = state.records.filter(function(r){return inScope(r,sc);});
-    var total=sum(recs,'题目总数'), wrong=sum(recs,'错题数'), n=recs.length;
-    var acc = total? Math.round((total-wrong)/total*100):0;
+    var n=recs.length;
+    var c0=recs.filter(function(r){return r.tag==='待复习';}).length;
+    var c1=recs.filter(function(r){return r.tag==='已复习';}).length;
+    var c2=recs.filter(function(r){return r.tag==='已攻克';}).length;
     var s = document.getElementById('summary');
     s.innerHTML =
-      stat(n,'次测试','')+
-      stat(total,'总题数','')+
-      stat(wrong,'错题数','warn')+
-      stat(acc+'%','正确率', acc>=80?'ok':'warn');
+      stat(n,'错题数','')+
+      stat(c0,'待复习','t0')+
+      stat(c1,'已复习','t1')+
+      stat(c2,'已攻克','t2');
     var items=[], cur=sc.tStart;
     while(cur<=sc.tEnd){
       var ds=ymd(cur), w=0;
-      state.records.forEach(function(r){ if(r.测试时间===ds) w+=r.错题数; });
+      state.records.forEach(function(r){ if(r.测试时间===ds) w+=1; });
       items.push({label:ds.slice(5).replace('-','/'), v:w});
       cur=addDays(cur,1);
     }
     document.getElementById('trend').innerHTML = vbar(items);
     var segT=toSegs(tally('错题类型',recs));
-    document.getElementById('donutType').innerHTML = donut(segT,'错题类型', wrong);
+    document.getElementById('donutType').innerHTML = donut(segT,'错题数', n);
     document.getElementById('legendType').innerHTML = legendHTML(segT);
     document.getElementById('barKp').innerHTML = hbar(toSegs(tally('知识点',recs)));
     document.getElementById('barReason').innerHTML = hbar(toSegs(tally('出错原因',recs)));
   }
-  function stat(v,l,cls){return '<div class="stat"><div class="v '+(cls||'')+'">'+v+'</div><div class="l">'+l+'</div></div>';}
-
   function renderList(){
     var box=document.getElementById('recordList');
     if(!state.records.length){ box.innerHTML='<div class="empty">还没有记录，去「录入」记第一笔吧～</div>'; return; }
     var recs=state.records.slice().sort(function(a,b){return a.测试时间<b.测试时间?1:-1;});
     box.innerHTML = recs.map(function(r){
-      var total=r.题目总数, wrong=r.错题数, acc=total?Math.round((total-wrong)/total*100):0;
-      var tTags=(r.错题类型||'').split('、').filter(Boolean).map(function(t){return '<span class="tag">'+t+'</span>';}).join('');
+      var tTags=(r.错题类型||'');
       var kTags=(r.知识点||'').split('、').filter(Boolean).map(function(t){return '<span class="tag k">'+t+'</span>';}).join('');
       var rTags=(r.出错原因||'').split('、').filter(Boolean).map(function(t){return '<span class="tag r">'+t+'</span>';}).join('');
-      var zh = r.习题类型==='综合训练'?'zh':'';
+      var tagCls = r.tag==='已攻克'?'k':(r.tag==='已复习'?'':'');
+      var photoCnt = (r.photos&&r.photos.length)?(' · 图'+r.photos.length):'';
       return '<div class="rec">'+
         '<div class="top"><span class="date">'+r.测试时间+'</span>'+
-          '<span class="type '+zh+'">'+r.习题类型+'</span>'+
+          '<span class="type">'+r.习题类型+'</span>'+
           '<button class="del" data-id="'+r._id+'">删除</button></div>'+
-        '<div class="meta">共 '+total+' 题 · 错 '+wrong+' 题 · 正确率 <span class="acc'+(acc<80?' low':'')+'">'+acc+'%</span></div>'+
-        '<div class="tags">'+tTags+kTags+rTags+'</div></div>';
+        '<div class="meta">错题类型：'+tTags+photoCnt+'</div>'+
+        '<div class="tags"><span class="tag">'+r.tag+'</span>'+kTags+rTags+'</div></div>';
     }).join('');
     Array.prototype.forEach.call(box.querySelectorAll('.del'),function(b){
       b.addEventListener('click',function(){ if(confirm('确定删除这条记录？')) removeRecord(b.getAttribute('data-id')); });
     });
   }
+  function renderBook(){
+    var box=document.getElementById('bookList');
+    if(!state.records.length){ box.innerHTML='<div class="empty">还没有错题，去「录入」记一笔吧～</div>'; return; }
+    var groups={};
+    state.records.forEach(function(r){
+      var kps=(r.知识点||'未分类').split('、').filter(Boolean);
+      if(!kps.length) kps=['未分类'];
+      kps.forEach(function(k){ (groups[k]=groups[k]||[]).push(r); });
+    });
+    var keys=Object.keys(groups).sort();
+    box.innerHTML = keys.map(function(k){
+      var items=groups[k];
+      return '<div class="kp-group"><h4>'+k+' <span class="cnt">'+items.length+' 题</span></h4>'+
+        items.map(function(r){ return errCard(r); }).join('')+'</div>';
+    }).join('');
+    // 绑定
+    Array.prototype.forEach.call(box.querySelectorAll('.errcard'),function(card){
+      var id=card.getAttribute('data-id');
+      Array.prototype.forEach.call(card.querySelectorAll('.ec-photos img'),function(img){
+        img.addEventListener('click',function(){ openLight(img.getAttribute('src')); });
+      });
+      Array.prototype.forEach.call(card.querySelectorAll('.tag-btn'),function(btn){
+        btn.addEventListener('click',function(){
+          updateRecord(id, {tag:btn.getAttribute('data-tag')});
+        });
+      });
+      var del=card.querySelector('.del');
+      if(del) del.addEventListener('click',function(){ if(confirm('确定删除这条错题？')) removeRecord(id); });
+    });
+  }
+  function errCard(r){
+    var photos=(r.photos||[]).map(function(p){
+      return '<img src="'+p.data+'" alt="题目">';
+    }).join('');
+    var tagBtns=TAGS.map(function(t,i){
+      return '<button class="tag-btn t'+i+(r.tag===t?' on':'')+'" data-tag="'+t+'">'+t+'</button>';
+    }).join('');
+    return '<div class="errcard" data-id="'+r._id+'">'+
+      '<div class="ec-top"><span class="ec-date">'+r.测试时间+'</span>'+
+        '<span class="ec-type">'+r.错题类型+'</span>'+
+        '<button class="del" data-id="'+r._id+'">删除</button></div>'+
+      '<div class="ec-sub">'+(r.知识点?('知识点：'+r.知识点):'')+(r.出错原因?(' · 原因：'+r.出错原因):'')+'</div>'+
+      (photos?'<div class="ec-photos">'+photos+'</div>':'<div class="ec-sub" style="color:#9AA7B8">暂无图片</div>')+
+      '<div class="tag-btns">'+tagBtns+'</div></div>';
+  }
+  function openLight(src){
+    document.getElementById('lbImg').src=src;
+    document.getElementById('lightbox').hidden=false;
+  }
 
-  /* ---------- chips ---------- */
-  function renderChips(kind){
-    var boxMap={types:'chipsType', kps:'chipsKp', reasons:'chipsReason'};
-    var box=document.getElementById(boxMap[kind]);
-    if(!box) return;
-    var arr=state.sel[kind], html='';
-    PRESET[kind].forEach(function(p){
+  /* ---------- chips：错题类型(父,单选) ---------- */
+  function renderTypeChips(){
+    var box=document.getElementById('chipsType');
+    var keys=Object.keys(state.hier);
+    var html='';
+    keys.forEach(function(k){
+      var on=state.sel.type===k;
+      html+='<span class="chip'+(on?' on':'')+'" data-v="'+k+'">'+k+'</span>';
+    });
+    if(state.sel.type && keys.indexOf(state.sel.type)<0){
+      html+='<span class="chip custom on" data-v="'+state.sel.type+'">'+state.sel.type+'<span class="x">×</span></span>';
+    }
+    box.innerHTML=html;
+    Array.prototype.forEach.call(box.querySelectorAll('.chip'),function(c){
+      c.addEventListener('click',function(){
+        var v=c.getAttribute('data-v');
+        if(c.querySelector('.x')){ // 删除自定义类型
+          delete state.hier[v]; saveHier(); state.sel.type=''; state.sel.kps=[];
+          renderTypeChips(); renderKpChips(); saveFormCache(); return;
+        }
+        state.sel.type = (state.sel.type===v)?'':v;
+        state.sel.kps=[];
+        renderTypeChips(); renderKpChips(); saveFormCache();
+      });
+    });
+  }
+  function renderKpChips(){
+    var box=document.getElementById('chipsKp');
+    if(!state.sel.type){ box.innerHTML='<span style="color:#9AA7B8;font-size:13px">请先选「错题类型」</span>'; return; }
+    var arr=state.hier[state.sel.type]||[];
+    var html='';
+    arr.forEach(function(p){
+      var on=state.sel.kps.indexOf(p)>=0;
+      html+='<span class="chip'+(on?' on':'')+'" data-v="'+p+'">'+p+'</span>';
+    });
+    state.sel.kps.forEach(function(v){
+      if(arr.indexOf(v)<0) html+='<span class="chip custom on" data-v="'+v+'">'+v+'<span class="x">×</span></span>';
+    });
+    box.innerHTML=html;
+    Array.prototype.forEach.call(box.querySelectorAll('.chip'),function(c){
+      c.addEventListener('click',function(){
+        var v=c.getAttribute('data-v');
+        if(c.querySelector('.x')){
+          var a=state.hier[state.sel.type]||[]; var i=a.indexOf(v); if(i>=0) a.splice(i,1); saveHier();
+          var j=state.sel.kps.indexOf(v); if(j>=0) state.sel.kps.splice(j,1);
+          renderKpChips(); saveFormCache(); return;
+        }
+        var idx=state.sel.kps.indexOf(v);
+        if(idx>=0) state.sel.kps.splice(idx,1); else state.sel.kps.push(v);
+        renderKpChips(); saveFormCache();
+      });
+    });
+  }
+  function renderReasonChips(){
+    var box=document.getElementById('chipsReason');
+    var arr=state.sel.reasons, html='';
+    PRESET.reasons.forEach(function(p){
       var on=arr.indexOf(p)>=0;
       html+='<span class="chip'+(on?' on':'')+'" data-v="'+p+'">'+p+'</span>';
     });
     arr.forEach(function(v){
-      if(PRESET[kind].indexOf(v)>=0) return;
+      if(PRESET.reasons.indexOf(v)>=0) return;
       html+='<span class="chip custom on" data-v="'+v+'">'+v+'<span class="x">×</span></span>';
     });
     box.innerHTML=html;
     Array.prototype.forEach.call(box.querySelectorAll('.chip'),function(c){
       c.addEventListener('click',function(){
         var v=c.getAttribute('data-v');
-        var i=arr.indexOf(v);
-        if(i>=0) arr.splice(i,1); else arr.push(v);
-        renderChips(kind); saveFormCache();
+        if(c.querySelector('.x')){ var i=arr.indexOf(v); if(i>=0) arr.splice(i,1); renderReasonChips(); saveFormCache(); return; }
+        var idx=arr.indexOf(v); if(idx>=0) arr.splice(idx,1); else arr.push(v);
+        renderReasonChips(); saveFormCache();
       });
     });
   }
@@ -526,12 +682,55 @@
     function add(){
       var v=document.getElementById(inputId).value.trim();
       if(!v) return;
-      if(state.sel[kind].indexOf(v)<0) state.sel[kind].push(v);
+      if(kind==='type'){
+        if(!state.hier[v]) state.hier[v]=[];
+        saveHier(); state.sel.type=v; state.sel.kps=[];
+      } else if(kind==='kp'){
+        if(!state.sel.type){ toast('请先选错题类型'); return; }
+        if((state.hier[state.sel.type]||[]).indexOf(v)<0) state.hier[state.sel.type].push(v);
+        saveHier();
+        if(state.sel.kps.indexOf(v)<0) state.sel.kps.push(v);
+      } else {
+        if(state.sel.reasons.indexOf(v)<0) state.sel.reasons.push(v);
+      }
       document.getElementById(inputId).value='';
-      renderChips(kind); saveFormCache();
+      renderTypeChips(); renderKpChips(); renderReasonChips(); saveFormCache();
     }
     document.getElementById(btnId).addEventListener('click',add);
     document.getElementById(inputId).addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();add();} });
+  }
+
+  /* ---------- 照片：压缩后内联 ---------- */
+  function compressFile(file){
+    return new Promise(function(res){
+      var reader=new FileReader();
+      reader.onload=function(){
+        var img=new Image();
+        img.onload=function(){
+          var max=900, w=img.width, h=img.height;
+          if(w>h && w>max){ h=Math.round(h*max/w); w=max; }
+          else if(h>max){ w=Math.round(w*max/h); h=max; }
+          var c=document.createElement('canvas'); c.width=w; c.height=h;
+          c.getContext('2d').drawImage(img,0,0,w,h);
+          res({id:'ph_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), name:file.name, data:c.toDataURL('image/jpeg',0.7)});
+        };
+        img.onerror=function(){ res({id:'ph_'+Date.now(), name:file.name, data:reader.result}); };
+        img.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  function renderPhotos(){
+    var box=document.getElementById('photoBox');
+    box.innerHTML=state.sel.photos.map(function(p,i){
+      return '<div class="photo-thumb"><img src="'+p.data+'" alt=""><button class="rm" data-i="'+i+'">×</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(box.querySelectorAll('.rm'),function(b){
+      b.addEventListener('click',function(){
+        state.sel.photos.splice(parseInt(b.getAttribute('data-i'),10),1);
+        renderPhotos();
+      });
+    });
   }
 
   function toast(msg){
@@ -540,11 +739,10 @@
   }
 
   /* ---------- 刷新 ---------- */
-  /* 同步渲染：首屏即在 DOMContentLoaded 内完成数据加载与渲染，
-     避免依赖 Promise 微任务导致首次绘制时 summary 为空（日视图空白的 bug 根因）。 */
   function refreshAll(){
     try { state.records = loadAll(); } catch(e){ state.records = state.records || []; }
     renderToday(); renderDiagnostics(); renderList();
+    if(!document.getElementById('tab-book').hidden) renderBook();
     return Promise.resolve();
   }
 
@@ -555,7 +753,8 @@
         var tab=b.getAttribute('data-tab');
         Array.prototype.forEach.call(document.querySelectorAll('nav.tabs button'),function(x){x.classList.remove('active');});
         b.classList.add('active');
-        ['diag','add','list'].forEach(function(k){ document.getElementById('tab-'+k).hidden = (k!==tab); });
+        ['diag','add','book','list'].forEach(function(k){ document.getElementById('tab-'+k).hidden = (k!==tab); });
+        if(tab==='book') renderBook();
       });
     });
     document.getElementById('todayGo').addEventListener('click',function(){
@@ -573,36 +772,41 @@
     });
   }
   function bindForm(){
+    state.hier = loadHier();
     document.getElementById('f_date').value = ymd(new Date());
     restoreFormCache();
-    renderChips('types'); renderChips('kps'); renderChips('reasons');
-    bindAdd('types','addType','btnAddType');
-    bindAdd('kps','addKp','btnAddKp');
-    bindAdd('reasons','addReason','btnAddReason');
+    renderTypeChips(); renderKpChips(); renderReasonChips();
+    bindAdd('type','addType','btnAddType');
+    bindAdd('kp','addKp','btnAddKp');
+    bindAdd('reason','addReason','btnAddReason');
+    var photoInput=document.getElementById('f_photos');
+    photoInput.addEventListener('change',function(e){
+      var files=e.target.files; if(!files||!files.length) return;
+      Array.prototype.forEach.call(files,function(f){
+        compressFile(f).then(function(p){ state.sel.photos.push(p); renderPhotos(); });
+      });
+      e.target.value='';
+    });
     document.getElementById('f_date').addEventListener('change', saveFormCache);
     Array.prototype.forEach.call(document.querySelectorAll('input[name=ftype]'),function(rb){ rb.addEventListener('change', saveFormCache); });
-    document.getElementById('f_total').addEventListener('input', saveFormCache);
-    document.getElementById('f_wrong').addEventListener('input', saveFormCache);
     document.getElementById('form').addEventListener('submit',function(e){
       e.preventDefault();
       var err=document.getElementById('formErr');
       var date=document.getElementById('f_date').value;
       var type=document.querySelector('input[name=ftype]:checked').value;
-      var total=parseInt(document.getElementById('f_total').value,10);
-      var wrong=parseInt(document.getElementById('f_wrong').value,10);
       if(!date){err.textContent='请选择测试时间';return;}
-      if(!total||total<1){err.textContent='题目总数需大于 0';return;}
-      if(isNaN(wrong)||wrong<0){err.textContent='错题数不能为负';return;}
-      if(wrong>total){err.textContent='错题数不能大于题目总数';return;}
+      if(!state.sel.type){err.textContent='请选择错题类型';return;}
       var btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='保存中…';
+      var photos=state.sel.photos.map(function(p){return {id:p.id,name:p.name,data:p.data};});
       addRecord({
-        测试时间:date, 习题类型:type, 题目总数:total, 错题数:wrong,
-        错题类型:state.sel.types.join('、'), 知识点:state.sel.kps.join('、'), 出错原因:state.sel.reasons.join('、')
+        测试时间:date, 习题类型:type,
+        错题类型:state.sel.type, 知识点:state.sel.kps.join('、'), 出错原因:state.sel.reasons.join('、'),
+        photos:photos
       }).then(function(){
-        btn.disabled=false; btn.textContent='保存这次测试';
+        btn.disabled=false; btn.textContent='保存这道错题';
         clearFormCache();
-        document.getElementById('f_total').value=''; document.getElementById('f_wrong').value='';
-        state.sel={types:[],kps:[],reasons:[]}; renderChips('types'); renderChips('kps'); renderChips('reasons');
+        state.sel={type:'',kps:[],reasons:[],photos:[]};
+        renderTypeChips(); renderKpChips(); renderReasonChips(); renderPhotos();
         toast('已保存到本机 ✓');
         document.querySelector('nav.tabs button[data-tab="diag"]').click();
       });
@@ -618,6 +822,8 @@
       if(f) importData(f);
       e.target.value='';
     });
+    document.getElementById('lbClose').addEventListener('click',function(){ document.getElementById('lightbox').hidden=true; });
+    document.getElementById('lightbox').addEventListener('click',function(e){ if(e.target.id==='lightbox') this.hidden=true; });
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
