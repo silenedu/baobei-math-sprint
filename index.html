@@ -195,18 +195,22 @@
   .q-item.t1{border-left-color:var(--t1)}
   .q-item.t2{border-left-color:var(--t2)}
   .q-item:active{transform:scale(.99);box-shadow:0 4px 14px rgba(35,48,63,.08)}
-  .q-thumb{width:54px;height:54px;border-radius:10px;object-fit:cover;flex:none;border:1px solid var(--line)}
   .q-main{flex:1;min-width:0}
   .q-top{display:flex;align-items:center;gap:8px}
   .q-date{font-weight:800;font-size:14px}
-  .q-type{font-size:12px;color:#fff;background:var(--primary);border-radius:999px;padding:2px 9px}
+  .q-type{font-size:12px;color:#fff;background:var(--primary);border-radius:999px;padding:2px 9px;flex:none}
   .q-sub{font-size:12.5px;color:var(--sub);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .q-desc{font-size:12.5px;color:var(--ink);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 右侧：有图时图片为主，且放右侧以保持日期左对齐 */
   .q-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
+  .q-thumbwrap{position:relative;flex:none;line-height:0}
+  .q-thumb{width:92px;height:92px;border-radius:12px;object-fit:cover;display:block;border:1px solid var(--line)}
+  .q-photocount{position:absolute;right:6px;bottom:6px;background:rgba(20,28,40,.62);color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:1px 6px;line-height:1.6}
+  .q-metarow{display:flex;align-items:center;gap:8px}
   .q-tag{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;background:var(--t0);color:#fff;white-space:nowrap}
   .q-tag.t1{background:var(--t1)}
   .q-tag.t2{background:var(--t2)}
-  .q-arrow{width:18px;height:18px;color:#B9C4D4}
+  .q-arrow{width:18px;height:18px;color:#B9C4D4;flex:none}
   /* ===== 错题详情卡片（弹层 + 左右滑动）===== */
   .detail{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:16px}
   .detail-mask{position:absolute;inset:0;background:rgba(20,28,40,.5)}
@@ -789,18 +793,22 @@
   /* 列表项（点击查看详情） */
   function qItem(r){
     var ti=TAGS.indexOf(r.tag); if(ti<0) ti=0;
-    var thumb=(r.photos&&r.photos.length)?'<img class="q-thumb" src="'+r.photos[0].data+'" alt="">':'';
+    var hasImg=!!(r.photos&&r.photos.length);
+    var thumb=hasImg?('<div class="q-thumbwrap"><img class="q-thumb" src="'+r.photos[0].data+'" alt="">'+
+      (r.photos.length>1?'<span class="q-photocount">'+r.photos.length+'</span>':'')+'</div>'):'';
     var sub=[];
     if(r.知识点) sub.push('知识点：'+esc(r.知识点));
     if(r.出错原因) sub.push('原因：'+esc(r.出错原因));
-    return '<div class="q-item'+(ti?' t'+ti:'')+'" data-id="'+r._id+'">'+thumb+
+    return '<div class="q-item'+(ti?' t'+ti:'')+(hasImg?' has-img':'')+'" data-id="'+r._id+'">'+
       '<div class="q-main">'+
         '<div class="q-top"><span class="q-date">'+r.测试时间+'</span><span class="q-type">'+esc(r.错题类型||'')+'</span></div>'+
         (sub.length?'<div class="q-sub">'+sub.join(' · ')+'</div>':'')+
         (r.补充描述?'<div class="q-desc">'+esc(r.补充描述)+'</div>':'')+
       '</div>'+
-      '<div class="q-side"><span class="q-tag'+(ti?' t'+ti:'')+'">'+esc(r.tag||'待复习')+'</span>'+
+      '<div class="q-side">'+thumb+
+        '<div class="q-metarow"><span class="q-tag'+(ti?' t'+ti:'')+'">'+esc(r.tag||'待复习')+'</span>'+
         '<svg class="q-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>'+
+      '</div>'+
     '</div>';
   }
   /* ---------- 错题详情卡片（弹层 + 左右滑动） ---------- */
@@ -1188,7 +1196,7 @@
   }
 
   /* ---------- Service Worker 注册（离线/可安装） ---------- */
-  var SW_VER = 'v16';
+  var SW_VER = 'v17';
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
     if(location.protocol!=='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1') return;
